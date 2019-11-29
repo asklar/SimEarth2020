@@ -1,8 +1,9 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Diagnostics;
+using System.Media;
 using System.Windows;
 using System.Windows.Controls;
-using System.Timers;
 using System.Windows.Controls.Primitives;
 
 namespace SimEarth2020
@@ -46,7 +47,7 @@ namespace SimEarth2020
             if (!isAddToolPopupOpen)
             {
                 IsAddToolPopupOpen = true;
-                EnsurePopupPanelButtons<Animal>(Animals, Tool.Add);
+                EnsurePopupPanelButtons<AnimalKind>(Animals, Tool.Add);
                 EnsurePopupPanelButtons<TechTool>(TechTools, Tool.Add);
             }
         }
@@ -58,18 +59,32 @@ namespace SimEarth2020
         }
         private int GetToolCost(object tool)
         {
-            if (tool is Animal)
+            if (tool is AnimalKind)
             {
-                return 50 + 10 * (int)((Animal)tool);
+                return 50 + 10 * (int)((AnimalKind)tool);
             }
             else if (tool is TechTool)
             {
                 return 70 + 10 * (int)((TechTool)tool);
             }
-            else
+            else if (tool is TerrainKind && CurrentTool == Tool.Terraform)
             {
-                throw new ArgumentException();
+                // TODO: Figure out costs
+                return 10;
             }
+            else if (tool == null)
+            {
+                switch (CurrentTool)
+                {
+                    case Tool.Inspect:
+                        return 5;
+                    case Tool.Move:
+                        return 25;
+                    case Tool.TerrainUpDown:
+                        return 200;
+                }
+            }
+            throw new ArgumentException();
         }
 
         public string CurrentToolString
@@ -156,7 +171,7 @@ namespace SimEarth2020
 
         private void Inspect_Click(object sender, RoutedEventArgs e)
         {
-
+            SetCurrentTool(Tool.Inspect, null);
         }
 
         private void Terraform_Click(object sender, RoutedEventArgs e)
@@ -164,7 +179,7 @@ namespace SimEarth2020
             if (!isTerraformPopupOpen)
             {
                 IsTerraformPopupOpen = true;
-                EnsurePopupPanelButtons<Terrain>(Terraform, Tool.Terraform);
+                EnsurePopupPanelButtons<TerrainKind>(Terraform, Tool.Terraform);
             }
         }
 
@@ -179,6 +194,7 @@ where TEnum : struct, IConvertible, IComparable, IFormattable
                 var values = Enum.GetValues(typeof(TEnum));
                 foreach (var value in values)
                 {
+                    if ((int)value < 0) continue;
                     var panel = new DockPanel();
                     panel.Children.Add(new Image() { Width = 20, Height = 20 }); // TODO
                     TextBlock text = new TextBlock() { Text = Util.MakeEnumName(Enum.GetName(typeof(TEnum), value)), HorizontalAlignment = HorizontalAlignment.Right };
@@ -200,11 +216,20 @@ where TEnum : struct, IConvertible, IComparable, IFormattable
             }
         }
 
-
-
+        public double Scale
+        {
+            get => scale;
+            set
+            {
+                scale = value;
+                ScalePct.Text = (int)(scale * 100) + "%";
+                ScaleTransform.ScaleX = scale;
+                ScaleTransform.ScaleY = scale;
+            }
+        }
         public void SetStatus(string s)
         {
-            System.Diagnostics.Debug.WriteLine(s);
+            Debug.WriteLine(s);
             Status.Content = s;
         }
 
@@ -226,42 +251,19 @@ where TEnum : struct, IConvertible, IComparable, IFormattable
         private void New_Click(object sender, RoutedEventArgs e)
         {
             var world = GetNewWorld();
-            StartWorld(world);
+            CurrentWorld = world;
+            WorldGrid.Children.Clear();
+            WorldGrid.RenderTransform = ScaleTransform;
+            world.Start();
         }
 
         public int Energy { get => CurrentWorld?.Energy ?? 0; }
-        private void StartWorld(World world)
-        {
-            CurrentWorld = world;
-            for (int i = 0; i < world.Width; i++)
-            {
-                WorldGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(16) }) ;
-            }
-            for (int i = 0; i < world.Height; i++)
-            {
-                WorldGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(16) });
-            }
-            for (int x = 0; x < world.Width; x++)
-            {
-                for (int y = 0; y < world.Height; y++)
-                {
-                    var cell = new Cell(world, x, y) { Content = "X" };
-                    cell.Click += (sender, args) => { (sender as Cell).DoClick(); } ;
-                    Grid.SetRow(cell, y);
-                    Grid.SetColumn(cell, x);
-                    WorldGrid.Children.Add(cell);
-                }
-            }
-            timer = new Timer(1000);
-            timer.Elapsed += (sender, args) => { world.Tick(); };
-            timer.Start();
-        }
+        private bool isInspectPopupOpen;
+        private double scale = 1;
 
-        Timer timer;
-
-        private void Click(Cell cell)
+        public void Click(Cell cell)
         {
-            SetStatus($"Clicked at {cell.Lat.Degrees}, {cell.Long.Degrees}");
+            SetStatus($"Clicked at ({cell.X}, {cell.Y}) {cell.Lat.Degrees}, {cell.Long.Degrees}");
             if (CurrentToolCost <= CurrentWorld.Energy)
             {
                 CurrentWorld.Energy -= CurrentToolCost;
@@ -271,9 +273,18 @@ where TEnum : struct, IConvertible, IComparable, IFormattable
                         break;
                     case Tool.Add:
                         {
-                            if (toolOption is Animal)
+                            if (toolOption is AnimalKind)
                             {
-                                cell.Animal = (Animal)toolOption;
+                                var kind = (AnimalKind)toolOption;
+                                if (cell.Animal == null || cell.Animal.Kind != kind)
+                                {
+                                    cell.Animal = new AnimalPack(Util.GetStats(kind));
+                                }
+                                else
+                                {
+                                    // refund
+                                    CurrentWorld.Energy += CurrentToolCost;
+                                }
                             }
                             else if (toolOption is TechTool)
                             {
@@ -292,7 +303,20 @@ where TEnum : struct, IConvertible, IComparable, IFormattable
                         break;
                     case Tool.Terraform:
                         {
-                            cell.Terrain = (Terrain)toolOption;
+                            var kind = (TerrainKind)toolOption;
+                            if (cell.Terrain.Kind != kind)
+                            {
+                                cell.Terrain = new Terrain() { Kind = kind, RemainingFood = 1000 };
+                            }
+                            else
+                            {
+                                CurrentWorld.Energy += CurrentToolCost;
+                            }
+                        }
+                        break;
+                    case Tool.Inspect:
+                        {
+                            IsInspectPopupOpen = true;
                         }
                         break;
                 }
@@ -300,9 +324,11 @@ where TEnum : struct, IConvertible, IComparable, IFormattable
             else
             {
                 SetStatus("Insufficient 🕉");
+                SystemSounds.Beep.Play();
             }
         }
 
+        public bool IsInspectPopupOpen { get => isInspectPopupOpen; set { isInspectPopupOpen = value; RaisePropertyChanged("IsInspectPopupOpen"); } }
         private World CurrentWorld { get; set; }
         public double Speed { get { return 1e4; } }
 
@@ -312,8 +338,7 @@ where TEnum : struct, IConvertible, IComparable, IFormattable
             return new World(this)
             {
                 Name = "Random world",
-                Width = 40,
-                Height = 40,
+                Width = 60,
                 Age = 900e3,
                 Radius = 6.3e6,
                 Energy = 1000

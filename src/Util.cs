@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System;
+using System.Windows;
 
 namespace SimEarth2020
 {
@@ -37,6 +38,24 @@ namespace SimEarth2020
             return r;
         }
 
-
+        internal static AnimalStats GetStats(AnimalKind kind)
+        {
+            return new AnimalStats()
+            {
+                Kind = kind,
+                MaxHP = 100,
+                FoodPerTurn = 3.5,
+                MaxFood = 100,
+                ActionThreshold = 45,
+                Speed = 0.4,
+                FoodSources = new FoodSource[] {
+                    new FoodSource() {
+                        AnimalKind = AnimalKind.Prokaryote, Sun = true, Vegetation = true
+                    }
+                },
+                CanSwim = true,
+                CanWalk = false
+            };
+        }
     }
 }

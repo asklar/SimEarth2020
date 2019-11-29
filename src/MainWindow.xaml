@@ -97,7 +97,12 @@
                         <StackPanel Background="YellowGreen" Name="Terraform" />
                     </Popup>
                     <local:RadioToggleButton GroupName="ToolGroup" Content="Inspect" Grid.Row="2" Grid.Column="1" Click="Inspect_Click"/>
-                </Grid>
+                    <Popup IsOpen="{Binding IsInspectPopupOpen, Mode=TwoWay}"
+                           Placement="MousePoint"
+                           AllowsTransparency="True" PopupAnimation="Fade"
+                           StaysOpen="False">
+                        <StackPanel Background="YellowGreen" Name="Inspect" Width="300" Height="80"/>
+                    </Popup>                </Grid>
                 <StackPanel x:Name="CostPanel" Width="80" HorizontalAlignment="Left">
                     <TextBlock x:Name="CurrentlySelectedTool" Text="{Binding CurrentToolString}"/>
                     <TextBlock x:Name="Cost" HorizontalAlignment="Center" Text="{Binding CostString}"/>
@@ -115,6 +120,8 @@
                     <local:RadioToggleButton Content="Seaheat" IsThreeState="True" GroupName="LayersGroup" />
                     <local:RadioToggleButton Content="Magma" IsThreeState="True" GroupName="LayersGroup" />
                 </StackPanel>
+                <Slider x:Name="ScaleControl" Minimum="0.1" Maximum="1" Value="{Binding Scale,Mode=TwoWay}"/>
+                <TextBlock x:Name="ScalePct" Width="80"/>
                 <StackPanel Width="80" HorizontalAlignment="Left">
                     <TextBlock x:Name="Budget" TextAlignment="Center" Width="80" Text="{Binding Path=Energy}"/>
                 </StackPanel>
@@ -125,9 +132,14 @@
                           HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
                           PanningMode="Both"
                           Height="350">
-                <Grid Background="Red" 
+                <Grid Background="Black" 
                         Name="WorldGrid" ScrollViewer.CanContentScroll="True"
-                      />
+                      >
+
+                    <Grid.RenderTransform>
+                        <ScaleTransform x:Name="ScaleTransform"/>
+                    </Grid.RenderTransform>
+                </Grid>
             </ScrollViewer>
             <StatusBar Grid.Row="2" Grid.ColumnSpan="2">
                 <StatusBarItem Name="Status" HorizontalAlignment="Stretch"/>

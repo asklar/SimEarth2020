@@ -2,12 +2,12 @@
 {
     public enum Tool
     {
+        None,
         Add,
         TerrainUpDown,
         Disaster,
         Move,
         Terraform,
         Inspect,
-        None = -1
     }
 }

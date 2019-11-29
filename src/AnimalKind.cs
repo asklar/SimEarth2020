@@ -1,8 +1,8 @@
 ﻿namespace SimEarth2020
 {
-    public enum Animal
+    public enum AnimalKind
     {
-        Prokaryote = 0,
+        Prokaryote,
         Eukaryote,
         Radiate,
         Arthropod,

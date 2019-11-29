@@ -1,14 +1,8 @@
 ﻿namespace SimEarth2020
 {
-    public enum Terrain
+    public class Terrain
     {
-        Rock,
-        Arctic,
-        Boreal,
-        Desert,
-        Grass,
-        Forest,
-        Jungle,
-        Swamp
+        public TerrainKind Kind { get; set; }
+        public int RemainingFood { get; set; } = 2000;
     }
 }
