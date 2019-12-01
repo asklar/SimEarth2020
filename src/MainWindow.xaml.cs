@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Media;
+using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -225,6 +226,7 @@ where TEnum : struct, IConvertible, IComparable, IFormattable
                 ScalePct.Text = (int)(scale * 100) + "%";
                 ScaleTransform.ScaleX = scale;
                 ScaleTransform.ScaleY = scale;
+                RaisePropertyChanged("Scale");
             }
         }
         public void SetStatus(string s)
@@ -250,11 +252,7 @@ where TEnum : struct, IConvertible, IComparable, IFormattable
 
         private void New_Click(object sender, RoutedEventArgs e)
         {
-            var world = GetNewWorld();
-            CurrentWorld = world;
-            WorldGrid.Children.Clear();
-            WorldGrid.RenderTransform = ScaleTransform;
-            world.Start();
+            NewGame(sender, null);
         }
 
         public int Energy { get => CurrentWorld?.Energy ?? 0; }
@@ -278,7 +276,7 @@ where TEnum : struct, IConvertible, IComparable, IFormattable
                                 var kind = (AnimalKind)toolOption;
                                 if (cell.Animal == null || cell.Animal.Kind != kind)
                                 {
-                                    cell.Animal = new AnimalPack(Util.GetStats(kind));
+                                    cell.Animal = new AnimalPack(kind, 10);
                                 }
                                 else
                                 {
@@ -306,7 +304,7 @@ where TEnum : struct, IConvertible, IComparable, IFormattable
                             var kind = (TerrainKind)toolOption;
                             if (cell.Terrain.Kind != kind)
                             {
-                                cell.Terrain = new Terrain() { Kind = kind, RemainingFood = 1000 };
+                                cell.Terrain = new Terrain(kind);
                             }
                             else
                             {
@@ -316,6 +314,11 @@ where TEnum : struct, IConvertible, IComparable, IFormattable
                         break;
                     case Tool.Inspect:
                         {
+                            if (IsInspectPopupOpen)
+                            {
+                                IsInspectPopupOpen = false;
+                            }
+                            Inspector.Set(cell);
                             IsInspectPopupOpen = true;
                         }
                         break;
@@ -343,6 +346,36 @@ where TEnum : struct, IConvertible, IComparable, IFormattable
                 Radius = 6.3e6,
                 Energy = 1000
             };
+        }
+
+        private void NewGame(object sender, System.Windows.Input.ExecutedRoutedEventArgs e)
+        {
+            var world = GetNewWorld();
+            CurrentWorld = world;
+            WorldGrid.Children.Clear();
+            WorldGrid.RenderTransform = ScaleTransform;
+            world.Start();
+            Scale = .33;
+            var timer = new Timer(1000);
+            timer.Elapsed += (sender, args) => { Dispatcher.Invoke(() =>
+                {
+                    world.Tick();
+                    lfg?.Update();
+                });
+            };
+            timer.Start();
+        }
+
+
+        LifeFormBarGraph lfg;
+        private void LifeFormBiomeGraph_Click(object sender, RoutedEventArgs e)
+        {
+            if (lfg == null)
+            {
+                lfg = new LifeFormBarGraph(CurrentWorld);
+            }
+            lfg.Show();
+            lfg.Closed += (s, a) => { lfg = null; };
         }
     }
 }

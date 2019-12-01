@@ -30,6 +30,11 @@ namespace SimEarth2020
             }
         }
 
+        internal string LatLongString()
+        {
+            return $"{Math.Abs(Lat.Degrees):N0}∘ {(Lat.Degrees > 0 ? 'N' : 'S')}, {Math.Abs(Long.Degrees):N0}∘ {(Long.Degrees > 0 ? 'E' : 'W')}";
+        }
+
         private Brush GetForeground()
         {
             Color bg = (Background as SolidColorBrush).Color;

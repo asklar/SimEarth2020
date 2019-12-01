@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -59,45 +58,129 @@ namespace SimEarth2020
         private long tick = 0;
 
         public Cell[,] cells;
+
+        public Queue<Census> CensusHistory = new Queue<Census>();
+
+        private void TickAnimal(Cell cell)
+        {
+            if (cell.Animal == null)
+                return;
+
+            // 0) Census
+            CurrentCensus.Add(cell.Animal);
+
+            // 1) Eat
+            TickAnimal_Eat(cell);
+            if (cell.Animal == null) return;
+
+            // 2) Reproduce
+            TickAnimal_Mate(cell.Animal);
+
+            // 3) Die
+            TickAnimal_Die(cell);
+            if (cell.Animal == null) return;
+
+            // 4) Move
+            TickAnimal_Move(cell);
+        }
+
+        private void TickAnimal_Move(Cell cell)
+        {
+            var (x, y) = cell.GetMoveCandidate(tick, rand);
+            if (cells[x, y].Animal != null)
+            {
+                // already occupied, don't move for now
+                // TODO: Implement animal packs eating each other
+            }
+            else
+            {
+                if (cells[x, y].Terrain.Kind == TerrainKind.Ocean && !cell.Animal.Stats.CanSwim)
+                    return;
+
+                if (cells[x, y].Terrain.Kind != TerrainKind.Ocean && !cell.Animal.Stats.CanWalk)
+                    return;
+
+                Debug.WriteLine($"Moving {cell.Animal.Kind}(LT {cell.Animal.LastTick}) from ({cell.X}, {cell.Y}) to ({x}, {y})");
+                cells[x, y].Animal = cell.Animal;
+                cells[x, y].Animal.LastTick = tick;
+                cell.Animal = null;
+            }
+        }
+
+        private void TickAnimal_Mate(AnimalPack animal)
+        {
+            const double Sigma = .25;
+            double litterSize = Math.Max(0, GetNormal() * Sigma + animal.Stats.AverageLitterSize);
+
+            var births = (animal.Population / 2) * litterSize * animal.Stats.PregnancyProbability;
+            animal.TotalHP += (int)(births * animal.Stats.MaxHP);
+        }                
+
+        private void TickAnimal_Die(Cell cell)
+        {
+            if (cell.Animal.Population <= 0)
+            {
+                Controller.SetStatus($"{cell.Animal.Kind} ({cell.LatLongString()}) died of famine");
+                cell.Animal = null;
+                return;
+            }
+        }
+
+        private void TickAnimal_Eat(Cell cell)
+        {
+            int foodNeeded = (int)(cell.Animal.Stats.FoodPerTurn * cell.Animal.Population);
+            var foodSources = cell.Animal.Stats.FoodSources;
+            double shortage = foodNeeded / cell.Animal.Population;
+            if (foodSources.Sun && Math.Abs(cell.Lat.Degrees) < 60)
+            {
+                return;
+            }
+            cell.Animal.TotalHP -= (int)shortage;
+            if (cell.Animal.Population <= 0)
+            {
+                cell.Animal = null;
+                return;
+            }
+                shortage = 0;
+            if (foodSources.Vegetation && cell.Terrain.RemainingFood > 0)
+            {
+                int foodAvailable = Math.Min(foodNeeded, cell.Terrain.RemainingFood);
+                cell.Terrain.RemainingFood -= foodAvailable;
+                cell.Animal.TotalHP += foodAvailable / cell.Animal.Population;
+                shortage = Math.Max(0, (foodNeeded - foodAvailable) / cell.Animal.Population);
+            }
+        }
+
+        public const int MaxCensusHistory = 30;
+        internal Census CurrentCensus;
         internal void Tick()
         {
             var start = DateTime.Now;
             Age += Controller.Speed;
             Energy = Math.Min(MaxEnergy, Energy + GetProducedEnergy());
-
+            CurrentCensus = new Census();
+            if (CensusHistory.Count == MaxCensusHistory)
+            {
+                CensusHistory.Dequeue();
+            }
             foreach (var cell in cells)
             {
-                if (cell.Animal == null)
-                    continue;
-
-                // 1) Move
-                var (x, y) = cell.GetMoveCandidate(tick, rand);
-                if (cells[x, y].Animal != null)
-                {
-                    // already occupied, don't move.
-                }
-                else
-                {
-                    if (cells[x, y].Terrain.Kind == TerrainKind.Ocean && !cell.Animal.Stats.CanSwim)
-                        continue;
-
-                    if (cells[x, y].Terrain.Kind != TerrainKind.Ocean && !cell.Animal.Stats.CanWalk)
-                        continue;
-
-                    Debug.WriteLine($"Moving {cell.Animal.Kind}(LT {cell.Animal.LastTick}) from ({cell.X}, {cell.Y}) to ({x}, {y})");
-                    cells[x, y].Animal = cell.Animal;
-                    cells[x, y].Animal.LastTick = tick;
-                    cell.Animal = null;
-                }
-                // 2) Eat
-                //cell.Animal.Food += cell.Terrain;
-                // 3) Reproduce
-
-                // 4) Die
+                TickAnimal(cell);
+                TickTerrain(cell);
             }
+            CensusHistory.Enqueue(CurrentCensus);
             var duration = DateTime.Now - start;
             Controller.SetStatus($"Tick {tick}: {duration.TotalMilliseconds} ms");
             tick++;
+        }
+
+        private void TickTerrain(Cell cell)
+        {
+            cell.Terrain?.Tick(cell.Lat);
+            if (cell.Terrain != null)
+            {
+                CurrentCensus.Add(cell.Terrain);
+            }
         }
 
         private Random rand = new Random();
@@ -133,14 +216,11 @@ namespace SimEarth2020
                     Grid.SetRow(cell, y);
                     Grid.SetColumn(cell, x);
                     Controller.WorldGrid.Children.Add(cell);
-                    cell.Terrain = new Terrain() { Kind = TerrainKind.Rock };
+                    cell.Terrain = new Terrain(TerrainKind.Rock);
                     cells[x, y] = cell;
                 }
             }
             Terraform();
-            timer = new Timer(1000);
-            timer.Elapsed += (sender, args) => { Controller.Dispatcher.Invoke(() => Tick()); };
-            timer.Start();
             watch.Stop();
             popup.IsOpen = false;
             Controller.SetStatus($"Created world in {watch.ElapsedMilliseconds} ms");
@@ -182,7 +262,7 @@ namespace SimEarth2020
                 y = (y + Height) % Height;
                 if (onWater || cells[x, y].Terrain.Kind != TerrainKind.Ocean)
                 {
-                    cells[x, y].Terrain = new Terrain() { Kind = kind };
+                    cells[x, y].Terrain = new Terrain(kind);
                 }
             }
         }
@@ -190,10 +270,6 @@ namespace SimEarth2020
         private int LatitudeToY(Angle latitude)
         {
             return (int)(Math.Sin(latitude.Radians) * Height / 2 + Height / 2);
-        }
-
-        private void MakeLakes()
-        {
         }
 
         private void CoverWithTerrain(int MeanRadius, double Sigma, double Coverage, TerrainKind kind, Angle maxLatitude)
@@ -212,7 +288,11 @@ namespace SimEarth2020
             }
         }
 
-        double GetNormal()
+        /// <summary>
+        /// Returns a Gaussian value with mean 0 and stddev 1
+        /// </summary>
+        /// <returns></returns>
+        private double GetNormal()
         {
             double u1 = rand.NextDouble();
             double u2 = rand.NextDouble();
@@ -233,13 +313,11 @@ namespace SimEarth2020
                 candY = (candY + Height) % Height;
                 if (cells[candX, candY].Terrain == null || cells[candX, candY].Terrain.Kind != TerrainKind.Ocean)
                 {
-                    cells[candX, candY].Terrain = new Terrain() { Kind = kind };
+                    cells[candX, candY].Terrain = new Terrain(kind);
                 }
             }
             return ret;
         }
-
-        Timer timer;
 
         public int GetProducedEnergy()
         {
@@ -253,5 +331,6 @@ namespace SimEarth2020
             get => energy;
             set { energy = value; Controller.RaisePropertyChanged("Energy"); }
         }
+
     }
 }

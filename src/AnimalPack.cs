@@ -2,15 +2,20 @@
 {
     public class AnimalPack
     {
-        public AnimalPack(AnimalStats stats)
+        public override string ToString()
         {
-            Stats = stats;
+            return $"{Population} {Kind}";
+        }
+        public AnimalPack(AnimalKind kind, int packPopulation)
+        {
+            Stats = AnimalStats.Get(kind);
+            TotalHP = Stats.MaxHP * packPopulation;
         }
         public int Food { get; set; }
-        public int HP { get; set; }
+        public int TotalHP { get; set; }
         public AnimalKind Kind { get => Stats.Kind; }
         public long LastTick { get; set; }
-        public int Population { get; set; } = 10;
+        public int Population { get => TotalHP / Stats.MaxHP; }
 
         public AnimalStats Stats { get; set; }
     }

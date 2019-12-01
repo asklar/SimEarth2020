@@ -1,4 +1,6 @@
-﻿namespace SimEarth2020
+﻿using System;
+
+namespace SimEarth2020
 {
     public enum AnimalKind
     {
