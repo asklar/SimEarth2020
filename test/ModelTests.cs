@@ -10,23 +10,24 @@ namespace SimEarthTests
         World World { get; set; }
         MockController Controller { get; set; }
         const int HalfWidth = 35;
+        double benchmark;
 
         Stopwatch watch;
         [SetUp]
         public void Setup()
         {
+            watch = new Stopwatch();
+            SetUpBenchmark();
+
             Controller = new MockController();
-            watch = Stopwatch.StartNew();
+            watch.Restart();
             World = new World(Controller) { Width = 2 * HalfWidth + 1, Radius = 1 };
             watch.Stop();
         }
 
-        [Test]
-        public void PerformanceWorld()
+        private void SetUpBenchmark()
         {
-            Assert.IsTrue(watch.ElapsedMilliseconds < 5);
-
-            double benchmark = 0;
+            benchmark = 0;
             long M = 100000;
             while (benchmark < 100)
             {
@@ -39,16 +40,28 @@ namespace SimEarthTests
             }
             benchmark /= M;
             Assert.IsTrue(watch.ElapsedMilliseconds >= 100);
+        }
 
+        private void Profile(Action action, double expectedCycleCount)
+        {
+            if (benchmark == 0)
+            {
+                SetUpBenchmark();
+            }
             watch.Restart();
-            World.Start();
-            watch.Stop();
-            Assert.IsTrue(watch.ElapsedMilliseconds / benchmark < 8e6);
-            watch.Restart();
-            World.Terraform();
+            action();
             watch.Stop();
             double k = watch.ElapsedMilliseconds / benchmark;
-            Assert.IsTrue(k < 1e8, $"{k} cycles");
+            Assert.IsTrue(k < expectedCycleCount, "Operation took {0} cycles", k);
+        }
+ 
+        [Test]
+        public void PerformanceWorld()
+        {
+            Assert.IsTrue(watch.ElapsedMilliseconds < 5);
+
+            Profile(() => World.Start(), 8e6);
+            Profile(() => World.Terraform(), 1e8);
         }
 
         [Test]
