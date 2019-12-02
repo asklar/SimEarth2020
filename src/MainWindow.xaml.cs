@@ -42,7 +42,7 @@ namespace SimEarth2020
         {
             InitializeComponent();
             this.DataContext = this;
-            Closed += (_, _1) => { timer.Stop(); };
+            Closed += (_, _1) => { timer?.Stop(); };
         }
 
         private void Add_Click(object sender, RoutedEventArgs e)

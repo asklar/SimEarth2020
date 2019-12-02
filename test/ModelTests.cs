@@ -25,14 +25,29 @@ namespace SimEarthTests
         public void PerformanceWorld()
         {
             Assert.IsTrue(watch.ElapsedMilliseconds < 5);
+
+            double benchmark = 0;
+            long M = 100000;
+            while (benchmark < 100)
+            {
+                M *= 10;
+                watch.Restart();
+                for (long i = 0; i < M; i++)
+                { }
+                watch.Stop();
+                benchmark = watch.ElapsedMilliseconds;
+            }
+            benchmark /= M;
+            Assert.IsTrue(watch.ElapsedMilliseconds >= 100);
+
             watch.Restart();
             World.Start();
             watch.Stop();
-            Assert.IsTrue(watch.ElapsedMilliseconds < 10);
+            Assert.IsTrue(watch.ElapsedMilliseconds / benchmark < 8e6);
             watch.Restart();
             World.Terraform();
             watch.Stop();
-            Assert.IsTrue(watch.ElapsedMilliseconds < 250);
+            Assert.IsTrue(watch.ElapsedMilliseconds / benchmark < 1e8);
         }
 
         [Test]
