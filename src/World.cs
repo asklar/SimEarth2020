@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
 
 namespace SimEarth2020
 {
@@ -93,11 +90,6 @@ namespace SimEarth2020
         public Random Random { get => rand; }
         public void Start()
         {
-            ProgressBar progressBar = new ProgressBar() { IsIndeterminate = true };
-
-            Popup popup = new Popup() { Placement = PlacementMode.Center, PlacementTarget = Controller as UIElement, Width = 200, Height = 80 };
-            popup.Child = progressBar;
-            popup.IsOpen = true;
             var watch = System.Diagnostics.Stopwatch.StartNew();
             cells = new Cell[Width, Height];
 
@@ -111,14 +103,13 @@ namespace SimEarth2020
                     cells[x, y] = cell;
                 }
             }
-            Terraform();
             watch.Stop();
-            popup.IsOpen = false;
             Controller.SetStatus($"Created world in {watch.ElapsedMilliseconds} ms");
         }
 
-        private void Terraform()
+        public void Terraform()
         {
+            Stopwatch stopwatch = Stopwatch.StartNew();
             // Oceans
             CoverWithTerrain(Width * 15 / 40, 2 / 3.0, .8, TerrainKind.Ocean, Angle.FromDegrees(90));
             // Lakes
@@ -140,6 +131,8 @@ namespace SimEarth2020
             CoverWithTerrain(5, 4, .13, TerrainKind.Desert, Angle.FromDegrees(30));
             // Swamps
             CoverWithTerrain(2, 1.5, .3, TerrainKind.Swamp, Angle.FromDegrees(60));
+            stopwatch.Stop();
+            Debug.WriteLine($"Terraform: {stopwatch.ElapsedMilliseconds} ms");
         }
 
         private void MakeLatitudeTerrain(Angle latitude, double Sigma, double Coverage, TerrainKind kind, bool onWater)
@@ -154,7 +147,7 @@ namespace SimEarth2020
                 if (onWater || cells[x, y].Terrain.Kind != TerrainKind.Ocean)
                 {
                     cells[x, y].Terrain = new Terrain(kind);
-                    Debug.WriteLine($"Set {kind} at latitude {cells[x, y].Lat.Degrees}°");
+                    // Debug.WriteLine($"Set {kind} at latitude {cells[x, y].Lat.Degrees}°");
                 }
             }
         }
@@ -166,6 +159,7 @@ namespace SimEarth2020
 
         private void CoverWithTerrain(int MeanRadius, double Sigma, double Coverage, TerrainKind kind, Angle maxLatitude)
         {
+            Stopwatch sw = Stopwatch.StartNew();
             int Area = Width * Height;
             int budget = (int)(Area * Coverage);
             int ymax = LatitudeToY(maxLatitude);
@@ -178,12 +172,14 @@ namespace SimEarth2020
                 var radius = (MeanRadius + (rand.NextDouble() - .5) * 3 * Sigma);
                 budget -= SetTerrainAround(x, y, radius, kind);
             }
+            sw.Stop();
+            // Debug.WriteLine($"CoverWithTerrain {kind} {sw.ElapsedMilliseconds} ms");
         }
 
 
         private int SetTerrainAround(int x, int y, double radius, TerrainKind kind)
         {
-            Debug.WriteLine($"Set {kind} around ({x}, {y}) radius={radius}");
+            // Debug.WriteLine($"Set {kind} around ({x}, {y}) radius={radius}");
             const double CoverPct = .6;
             int cover = (int)(Math.PI * radius * radius * CoverPct);
             int ret = cover;

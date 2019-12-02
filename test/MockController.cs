@@ -12,7 +12,6 @@ namespace SimEarthTests
 
         public void AddToGrid(ICellDisplay display)
         {
-            throw new NotImplementedException();
         }
 
         public void Click(Cell cell)
@@ -31,8 +30,6 @@ namespace SimEarthTests
         }
 
         public void SetStatus(string s)
-        {
-            throw new NotImplementedException();
-        }
+        { }
     }
 }

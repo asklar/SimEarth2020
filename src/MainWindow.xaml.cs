@@ -42,7 +42,7 @@ namespace SimEarth2020
         {
             InitializeComponent();
             this.DataContext = this;
-
+            Closed += (_, _1) => { timer.Stop(); };
         }
 
         private void Add_Click(object sender, RoutedEventArgs e)
@@ -358,6 +358,7 @@ where TEnum : struct, IConvertible, IComparable, IFormattable
         {
             var world = GetNewWorld();
             CurrentWorld = world;
+            WorldGrid.Visibility = Visibility.Hidden;
             WorldGrid.Children.Clear();
             WorldGrid.RenderTransform = ScaleTransform;
             for (int i = 0; i < Width; i++)
@@ -370,19 +371,26 @@ where TEnum : struct, IConvertible, IComparable, IFormattable
             }
 
             world.Start();
+            world.Terraform();
+            WorldGrid.Visibility = Visibility.Visible;
             Scale = .33;
-            var timer = new Timer(1000);
+            if (timer != null)
+            {
+                timer.Stop();
+            }
+            timer = new Timer(1000);
             timer.Elapsed += (sender, args) =>
             {
                 Dispatcher.Invoke(() =>
-{
-world.Tick();
-lfg?.Update();
-});
+                {
+                    world.Tick();
+                    lfg?.Update();
+                });
             };
             timer.Start();
         }
 
+        Timer timer;
 
         LifeFormBarGraph lfg;
         private void LifeFormBiomeGraph_Click(object sender, RoutedEventArgs e)
@@ -397,7 +405,9 @@ lfg?.Update();
 
         public ICellDisplay GetCellDisplay(Cell cell)
         {
-            return new CellDisplay(cell);
+            var cd = new CellDisplay();
+            cd.Initialize(cell);
+            return cd;
         }
     }
 }

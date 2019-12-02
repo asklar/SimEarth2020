@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 
 namespace SimEarth2020
 {
@@ -149,7 +148,7 @@ namespace SimEarth2020
                 if (World.cells[x, y].Terrain.Kind != TerrainKind.Ocean && !Animal.Stats.CanWalk)
                     return;
 
-                Debug.WriteLine($"Moving {Animal.Kind}(LT {Animal.LastTick}) from ({X}, {Y}) to ({x}, {y})");
+                // Debug.WriteLine($"Moving {Animal.Kind}(LT {Animal.LastTick}) from ({X}, {Y}) to ({x}, {y})");
                 World.cells[x, y].Animal = Animal;
                 World.cells[x, y].Animal.LastTick = World.CurrentTick;
                 Animal = null;

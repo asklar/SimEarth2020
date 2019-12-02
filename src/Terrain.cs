@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 
 namespace SimEarth2020
 {
@@ -50,7 +49,7 @@ namespace SimEarth2020
 
         private void Become(TerrainKind kind)
         {
-            Debug.WriteLine($"{Kind} has become {kind}");
+            // Debug.WriteLine($"{Kind} has become {kind}");
             Stats = TerrainStats.Get(kind);
         }
     }

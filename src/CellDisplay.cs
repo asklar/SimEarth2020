@@ -47,7 +47,7 @@ namespace SimEarth2020
             return new SolidColorBrush(c);
         }
         private Cell cell;
-        public CellDisplay(Cell cell)
+        public void Initialize(Cell cell)
         {
             this.cell = cell;
             Background = Brushes.Wheat;
