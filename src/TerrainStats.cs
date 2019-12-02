@@ -3,7 +3,7 @@
 namespace SimEarth2020
 {
     public class TerrainStats
-    { 
+    {
         public int GrowthPerTurn { get; set; }
         public TerrainKind Kind { get; set; }
         public int MaxFood { get; set; }
@@ -19,12 +19,12 @@ namespace SimEarth2020
             const double S = World.SolarLuminosity / (World.RotationalFactor * Math.PI * World.DistanceToTheSun * World.DistanceToTheSun);
             double AverageAlbedo = 0.3;
             double Trad = Math.Pow(
-                (1 - AverageAlbedo) * S / 4.0  * Math.Cos(latitude.Radians) 
-                / Emissivity / StefanBoltzmannSigma, 
+                (1 - AverageAlbedo) * S / 4.0 * Math.Cos(latitude.Radians)
+                / Emissivity / StefanBoltzmannSigma,
                 1 / 4.0);
             // The factor of 2^(1/4) below comes from 
             // https://en.wikipedia.org/wiki/Idealized_greenhouse_model
-            return Temperature.FromKelvin(Trad * Math.Pow(2, 1/4.0));
+            return Temperature.FromKelvin(Trad * Math.Pow(2, 1 / 4.0));
         }
         private static TerrainStats[] stats;
         static TerrainStats()

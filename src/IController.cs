@@ -4,7 +4,6 @@ namespace SimEarth2020
 {
     public interface IController : INotifyPropertyChanged
     {
-        System.Windows.Controls.Grid Grid { get; }
         double Speed { get; }
 
         void Click(Cell cell);

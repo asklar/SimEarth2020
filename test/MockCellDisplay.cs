@@ -1,5 +1,4 @@
 ﻿using SimEarth2020;
-using System;
 
 namespace SimEarthTests
 {

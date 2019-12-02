@@ -11,7 +11,7 @@ namespace SimEarth2020
             this.World = world;
             X = x;
             Y = y;
-            Display =  world.Controller.GetCellDisplay(this);
+            Display = world.Controller.GetCellDisplay(this);
         }
 
         public Terrain Terrain
@@ -34,7 +34,7 @@ namespace SimEarth2020
             get => Terrain.Stats.GetTemperature(Lat);
         }
 
- 
+
 
         public AnimalPack Animal
         {

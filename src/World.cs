@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
-using System.Windows.Input;
 
 namespace SimEarth2020
 {
@@ -18,13 +17,6 @@ namespace SimEarth2020
             Controller = m;
         }
 
-        private UIElementCollection Cells
-        {
-            get
-            {
-                return Controller.Grid.Children;
-            }
-        }
         private double age;
         private int energy;
 
@@ -108,14 +100,7 @@ namespace SimEarth2020
             popup.IsOpen = true;
             var watch = System.Diagnostics.Stopwatch.StartNew();
             cells = new Cell[Width, Height];
-            for (int i = 0; i < Width; i++)
-            {
-                Controller.Grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(16) });
-            }
-            for (int i = 0; i < Height; i++)
-            {
-                Controller.Grid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(16) });
-            }
+
             for (int x = 0; x < Width; x++)
             {
                 for (int y = 0; y < Height; y++)
@@ -158,7 +143,7 @@ namespace SimEarth2020
         }
 
         private void MakeLatitudeTerrain(Angle latitude, double Sigma, double Coverage, TerrainKind kind, bool onWater)
-        { 
+        {
             int budget = (int)(Width * Coverage);
 
             while (budget-- > 0)
@@ -169,7 +154,7 @@ namespace SimEarth2020
                 if (onWater || cells[x, y].Terrain.Kind != TerrainKind.Ocean)
                 {
                     cells[x, y].Terrain = new Terrain(kind);
-                    Debug.WriteLine($"Set {kind} at latitude {cells[x,y].Lat.Degrees}°");
+                    Debug.WriteLine($"Set {kind} at latitude {cells[x, y].Lat.Degrees}°");
                 }
             }
         }

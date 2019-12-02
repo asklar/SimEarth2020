@@ -1,13 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 
 namespace SimEarth2020
@@ -31,8 +25,13 @@ namespace SimEarth2020
             modeIsGraph = false;
             string[] names = Enum.GetNames(typeof(AnimalKind));
             Census census = world.CurrentCensus;
-            StackPanel p = new StackPanel() { Width = names.Length * (8 + 1), Height = 100, 
-                Orientation = Orientation.Horizontal, Background = Brushes.AliceBlue };
+            StackPanel p = new StackPanel()
+            {
+                Width = names.Length * (8 + 1),
+                Height = 100,
+                Orientation = Orientation.Horizontal,
+                Background = Brushes.AliceBlue
+            };
             for (int i = 0; i < names.Length; i++)
             {
                 Rectangle rectangle = new Rectangle() { Width = 8, Margin = new Thickness(.5), Height = census.TotalAnimals((AnimalKind)i), Fill = Brushes.Red };
@@ -63,10 +62,11 @@ namespace SimEarth2020
             StackPanel p = new StackPanel();
             canvas.RenderTransform = new ScaleTransform();
             Slider s = new Slider() { Minimum = 0.01, Maximum = 10, Value = 1 };
-            s.ValueChanged += (_, a) => {
+            s.ValueChanged += (_, a) =>
+            {
                 var st = canvas.RenderTransform as ScaleTransform;
-                st.ScaleX = 1/s.Value;
-                st.ScaleY = 1/s.Value;
+                st.ScaleX = 1 / s.Value;
+                st.ScaleY = 1 / s.Value;
                 st.CenterX = lastX;
                 st.CenterY = canvas.Height;
 
@@ -102,9 +102,14 @@ namespace SimEarth2020
             double newY = originalHeight - world.CurrentCensus.TotalAnimals(currentKind) / 10;
             if (lastX != -1)
             {
-                Line l = new Line() { X1 = lastX, Y1 = lastY, 
-                    X2 = lastX + 1, Y2 = newY, 
-                    Stroke = Brushes.Black };
+                Line l = new Line()
+                {
+                    X1 = lastX,
+                    Y1 = lastY,
+                    X2 = lastX + 1,
+                    Y2 = newY,
+                    Stroke = Brushes.Black
+                };
                 c.Children.Add(l);
             }
             lastX++;
@@ -113,7 +118,7 @@ namespace SimEarth2020
         }
 
         private void UpdateBarChart()
-        { 
+        {
             StackPanel p = Content as StackPanel;
             for (int i = 0; i < p.Children.Count; i++)
             {

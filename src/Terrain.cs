@@ -22,8 +22,8 @@ namespace SimEarth2020
             RemainingFood = Math.Min(RemainingFood + growth, Stats.MaxFood);
             // TODO: State machine for terrain to become a different terrain 
             // based on temperature, proximity to water, etc.
-            if (Stats.GetTemperature(lat).Celsius <= 2 && 
-                Kind != TerrainKind.Tundra && 
+            if (Stats.GetTemperature(lat).Celsius <= 2 &&
+                Kind != TerrainKind.Tundra &&
                 Kind != TerrainKind.Ocean &&
                 Kind != TerrainKind.Rock)
             {

@@ -12,7 +12,7 @@ namespace SimEarthTests
         public void Setup()
         {
             Controller = new MockController();
-            World  = new World(Controller) { Width = 11, Radius = 1 };
+            World = new World(Controller) { Width = 11, Radius = 1 };
         }
 
         [Test]

@@ -188,7 +188,7 @@ namespace SimEarth2020
 
         public void AddToGrid(ICellDisplay display)
         {
-            Grid.Children.Add(display as UIElement);
+            WorldGrid.Children.Add(display as UIElement);
         }
         private void EnsurePopupPanelButtons<TEnum>(Panel container, Tool tool)
 where TEnum : struct, IConvertible, IComparable, IFormattable
@@ -354,22 +354,31 @@ where TEnum : struct, IConvertible, IComparable, IFormattable
             };
         }
 
-        public Grid Grid => WorldGrid;
-
         private void NewGame(object sender, System.Windows.Input.ExecutedRoutedEventArgs e)
         {
             var world = GetNewWorld();
             CurrentWorld = world;
             WorldGrid.Children.Clear();
             WorldGrid.RenderTransform = ScaleTransform;
+            for (int i = 0; i < Width; i++)
+            {
+                WorldGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(16) });
+            }
+            for (int i = 0; i < Height; i++)
+            {
+                WorldGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(16) });
+            }
+
             world.Start();
             Scale = .33;
             var timer = new Timer(1000);
-            timer.Elapsed += (sender, args) => { Dispatcher.Invoke(() =>
-                {
-                    world.Tick();
-                    lfg?.Update();
-                });
+            timer.Elapsed += (sender, args) =>
+            {
+                Dispatcher.Invoke(() =>
+{
+world.Tick();
+lfg?.Update();
+});
             };
             timer.Start();
         }

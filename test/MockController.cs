@@ -1,14 +1,11 @@
 ﻿using SimEarth2020;
 using System;
 using System.ComponentModel;
-using System.Windows.Controls;
 
 namespace SimEarthTests
 {
     public class MockController : IController
     {
-        public Grid Grid => throw new NotImplementedException();
-
         public double Speed => throw new NotImplementedException();
 
         public event PropertyChangedEventHandler PropertyChanged;
