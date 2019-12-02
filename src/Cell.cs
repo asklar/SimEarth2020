@@ -1,75 +1,40 @@
 ﻿using System;
-using System.Windows.Controls;
-using System.Windows.Media;
+using System.Diagnostics;
 
 namespace SimEarth2020
 {
-    public class Cell : TextBlock
+    public class Cell
     {
+        public ICellDisplay Display { get; set; }
         public Cell(World world, int x, int y)
         {
-            this.world = world;
+            this.World = world;
             X = x;
             Y = y;
-            Background = new SolidColorBrush(Colors.Wheat);
-            Foreground = new SolidColorBrush(Colors.White);
-            TextAlignment = System.Windows.TextAlignment.Center;
-            VerticalAlignment = System.Windows.VerticalAlignment.Center;
-            Text = " ";
-            Margin = new System.Windows.Thickness(0.4);
+            Display =  world.Controller.GetCellDisplay(this);
         }
-        public bool IsOcean { get; set; }
+
         public Terrain Terrain
         {
             get => terrain;
             set
             {
                 terrain = value;
-                Background = GetBackground();
-                Foreground = GetForeground();
+                Display.UpdateTerrain();
             }
         }
 
         internal string LatLongString()
         {
-            return $"{Math.Abs(Lat.Degrees):N0}∘ {(Lat.Degrees > 0 ? 'N' : 'S')}, {Math.Abs(Long.Degrees):N0}∘ {(Long.Degrees > 0 ? 'E' : 'W')}";
+            return $"{Math.Abs(Lat.Degrees):N0}° {(Lat.Degrees > 0 ? 'N' : 'S')}, {Math.Abs(Long.Degrees):N0}° {(Long.Degrees > 0 ? 'E' : 'W')}";
         }
 
-        private Brush GetForeground()
+        public Temperature Temperature
         {
-            Color bg = (Background as SolidColorBrush).Color;
-            if (((double)bg.R + (double)bg.G + (double)bg.B) / 3 > (double)255/3)
-            {
-                return new SolidColorBrush(Colors.Black);
-            }
-            return new SolidColorBrush(Colors.White);
+            get => Terrain.Stats.GetTemperature(Lat);
         }
-        private Brush GetBackground()
-        {
-            Color c;
-            switch (terrain.Kind)
-            {
-                case TerrainKind.Tundra:
-                    c = Colors.White; break;
-                case TerrainKind.Taiga:
-                    c = Colors.Azure; break;
-                case TerrainKind.Desert:
-                    c = Colors.Peru; break;
-                case TerrainKind.Forest:
-                    c = Colors.ForestGreen; break;
-                case TerrainKind.Grass:
-                    c = Colors.LawnGreen; break;
-                case TerrainKind.Jungle:
-                    c = Colors.LimeGreen; break;
-                case TerrainKind.Rock:
-                    c = Colors.DimGray; break;
-                case TerrainKind.Swamp:
-                    c = Colors.DarkOliveGreen; break;
-                case TerrainKind.Ocean:
-                    c = Colors.MidnightBlue; break;
-            }
-            return new SolidColorBrush(c);
-        }
+
+ 
 
         public AnimalPack Animal
         {
@@ -77,7 +42,7 @@ namespace SimEarth2020
             set
             {
                 animal = value;
-                Text = animal == null ? "" : animal.Kind.ToString()[0] + "";
+                Display.UpdateAnimal();
             }
         }
         public TechTool TechTool { get; set; }
@@ -105,28 +70,22 @@ namespace SimEarth2020
 
         private double[] ToSpherical()
         {
-            double circumference = 2 * Math.PI * world.Radius;
-            double x = (X + .5 - world.Width / 2) * (circumference / world.Width);
-            double y = (world.Height / 2 - Y - .5) * (circumference / 2 / world.Height);
-            double z = Elevation + world.Radius;
+            double circumference = 2 * Math.PI * World.Radius;
+            double x = (X + .5 - World.Width / 2.0) * (circumference / World.Width);
+            double y = (World.Height / 2.0 - Y - .5) * (circumference / 2 / World.Height);
+            double z = Elevation + World.Radius;
 
             return new double[] { z, y / z, x / z };
         }
 
-        internal void DoClick()
-        {
-            //Util.FindParent<MainWindow>(this).Click(this);
-            world.Controller.Click(this);
-        }
-
-        internal (int, int) GetMoveCandidate(long tick, Random rand)
+        internal (int, int) GetMoveCandidate(long tick)
         {
             if (Animal != null && Animal.LastTick < tick)
             {
                 var stats = Animal.Stats;
                 int x = X;
                 int y = Y;
-                int r = rand.Next(10);
+                int r = World.Random.Next(10);
                 switch (r % 3)
                 {
                     case 0: x--; break;
@@ -140,15 +99,116 @@ namespace SimEarth2020
                     case 2: y++; break;
                 }
 
-                x = (x + world.Width) % world.Width;
-                y = (y + world.Height) % world.Height;
+                x = (x + World.Width) % World.Width;
+                y = (y + World.Height) % World.Height;
                 // TODO: The animal wants to move, figure out how to get the destination cell and see if we can swap it
                 return (x, y);
             }
             return (X, Y);
         }
 
-        public double Temperature { get; set; }
         public Angle WindDirection { get; set; }
+        public World World { get => world; set => world = value; }
+
+        public void TickAnimal()
+        {
+            if (Animal == null)
+                return;
+
+            // 0) Census
+            World.CurrentCensus.Add(Animal);
+
+            // 1) Eat
+            TickAnimal_Eat();
+            if (Animal == null) return;
+
+            // 2) Reproduce
+            TickAnimal_Mate();
+
+            // 3) Die
+            TickAnimal_Die();
+            if (Animal == null) return;
+
+            // 4) Move
+            TickAnimal_Move();
+        }
+
+        private void TickAnimal_Move()
+        {
+            var (x, y) = GetMoveCandidate(World.CurrentTick);
+            if (World.cells[x, y].Animal != null)
+            {
+                // already occupied, don't move for now
+                // TODO: Implement animal packs eating each other
+            }
+            else
+            {
+                if (World.cells[x, y].Terrain.Kind == TerrainKind.Ocean && !Animal.Stats.CanSwim)
+                    return;
+
+                if (World.cells[x, y].Terrain.Kind != TerrainKind.Ocean && !Animal.Stats.CanWalk)
+                    return;
+
+                Debug.WriteLine($"Moving {Animal.Kind}(LT {Animal.LastTick}) from ({X}, {Y}) to ({x}, {y})");
+                World.cells[x, y].Animal = Animal;
+                World.cells[x, y].Animal.LastTick = World.CurrentTick;
+                Animal = null;
+            }
+        }
+
+        private void TickAnimal_Mate()
+        {
+            const double Sigma = .25;
+            double litterSize = Math.Max(0, World.Random.GetNormal() * Sigma + Animal.Stats.AverageLitterSize);
+
+            var births = (Animal.Population / 2) * litterSize * Animal.Stats.PregnancyProbability;
+            Animal.TotalHP += (int)(births * Animal.Stats.MaxHP);
+        }
+
+        private void TickAnimal_Die()
+        {
+            if (Animal.Population <= 0)
+            {
+                World.Controller.SetStatus($"{Animal.Kind} ({LatLongString()}) died of famine");
+                Animal = null;
+                return;
+            }
+        }
+
+        private void TickAnimal_Eat()
+        {
+            int foodNeeded = (int)(Animal.Stats.FoodPerTurn * Animal.Population);
+            var foodSources = Animal.Stats.FoodSources;
+            double shortage = foodNeeded / Animal.Population;
+            if (foodSources.Sun && Math.Abs(Lat.Degrees) < 60)
+            {
+                return;
+            }
+            Animal.TotalHP -= (int)shortage;
+            if (Animal.Population <= 0)
+            {
+                Animal = null;
+                return;
+            }
+            shortage = 0;
+            if (foodSources.Vegetation && Terrain.RemainingFood > 0)
+            {
+                int foodAvailable = Math.Min(foodNeeded, Terrain.RemainingFood);
+                Terrain.RemainingFood -= foodAvailable;
+                Animal.TotalHP += foodAvailable / Animal.Population;
+                shortage = Math.Max(0, (foodNeeded - foodAvailable) / Animal.Population);
+            }
+        }
+
+        public void TickTerrain()
+        {
+            TerrainKind old = Terrain.Kind;
+            Terrain.Tick(Lat);
+            if (old != Terrain.Kind)
+            {
+                // The terrain has changed, update its display
+                Display.UpdateTerrain();
+            }
+        }
     }
 }

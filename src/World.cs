@@ -10,7 +10,10 @@ namespace SimEarth2020
 {
     public class World
     {
-        public World(MainWindow m)
+        public const double RotationalFactor = 4; // 4 for rapidly rotating bodies (Earth), 2 for slowly rotating bodies.
+        public const double SolarLuminosity = 3.828e26;
+        public const double DistanceToTheSun = 1.495978707e11;
+        public World(IController m)
         {
             Controller = m;
         }
@@ -19,13 +22,13 @@ namespace SimEarth2020
         {
             get
             {
-                return Controller.WorldGrid.Children;
+                return Controller.Grid.Children;
             }
         }
         private double age;
         private int energy;
 
-        internal MainWindow Controller { get; set; }
+        internal IController Controller { get; set; }
         public string Name { get; set; }
         public int Width { get; set; }
         public int Height { get => Width; }
@@ -56,104 +59,15 @@ namespace SimEarth2020
             return $"{Name}: {GetAge()}yr";
         }
         private long tick = 0;
-
+        public long CurrentTick { get => tick; }
         public Cell[,] cells;
 
         public Queue<Census> CensusHistory = new Queue<Census>();
 
-        private void TickAnimal(Cell cell)
-        {
-            if (cell.Animal == null)
-                return;
-
-            // 0) Census
-            CurrentCensus.Add(cell.Animal);
-
-            // 1) Eat
-            TickAnimal_Eat(cell);
-            if (cell.Animal == null) return;
-
-            // 2) Reproduce
-            TickAnimal_Mate(cell.Animal);
-
-            // 3) Die
-            TickAnimal_Die(cell);
-            if (cell.Animal == null) return;
-
-            // 4) Move
-            TickAnimal_Move(cell);
-        }
-
-        private void TickAnimal_Move(Cell cell)
-        {
-            var (x, y) = cell.GetMoveCandidate(tick, rand);
-            if (cells[x, y].Animal != null)
-            {
-                // already occupied, don't move for now
-                // TODO: Implement animal packs eating each other
-            }
-            else
-            {
-                if (cells[x, y].Terrain.Kind == TerrainKind.Ocean && !cell.Animal.Stats.CanSwim)
-                    return;
-
-                if (cells[x, y].Terrain.Kind != TerrainKind.Ocean && !cell.Animal.Stats.CanWalk)
-                    return;
-
-                Debug.WriteLine($"Moving {cell.Animal.Kind}(LT {cell.Animal.LastTick}) from ({cell.X}, {cell.Y}) to ({x}, {y})");
-                cells[x, y].Animal = cell.Animal;
-                cells[x, y].Animal.LastTick = tick;
-                cell.Animal = null;
-            }
-        }
-
-        private void TickAnimal_Mate(AnimalPack animal)
-        {
-            const double Sigma = .25;
-            double litterSize = Math.Max(0, GetNormal() * Sigma + animal.Stats.AverageLitterSize);
-
-            var births = (animal.Population / 2) * litterSize * animal.Stats.PregnancyProbability;
-            animal.TotalHP += (int)(births * animal.Stats.MaxHP);
-        }                
-
-        private void TickAnimal_Die(Cell cell)
-        {
-            if (cell.Animal.Population <= 0)
-            {
-                Controller.SetStatus($"{cell.Animal.Kind} ({cell.LatLongString()}) died of famine");
-                cell.Animal = null;
-                return;
-            }
-        }
-
-        private void TickAnimal_Eat(Cell cell)
-        {
-            int foodNeeded = (int)(cell.Animal.Stats.FoodPerTurn * cell.Animal.Population);
-            var foodSources = cell.Animal.Stats.FoodSources;
-            double shortage = foodNeeded / cell.Animal.Population;
-            if (foodSources.Sun && Math.Abs(cell.Lat.Degrees) < 60)
-            {
-                return;
-            }
-            cell.Animal.TotalHP -= (int)shortage;
-            if (cell.Animal.Population <= 0)
-            {
-                cell.Animal = null;
-                return;
-            }
-                shortage = 0;
-            if (foodSources.Vegetation && cell.Terrain.RemainingFood > 0)
-            {
-                int foodAvailable = Math.Min(foodNeeded, cell.Terrain.RemainingFood);
-                cell.Terrain.RemainingFood -= foodAvailable;
-                cell.Animal.TotalHP += foodAvailable / cell.Animal.Population;
-                shortage = Math.Max(0, (foodNeeded - foodAvailable) / cell.Animal.Population);
-            }
-        }
 
         public const int MaxCensusHistory = 30;
         internal Census CurrentCensus;
-        internal void Tick()
+        public void Tick()
         {
             var start = DateTime.Now;
             Age += Controller.Speed;
@@ -165,7 +79,7 @@ namespace SimEarth2020
             }
             foreach (var cell in cells)
             {
-                TickAnimal(cell);
+                cell.TickAnimal();
                 TickTerrain(cell);
             }
             CensusHistory.Enqueue(CurrentCensus);
@@ -176,7 +90,7 @@ namespace SimEarth2020
 
         private void TickTerrain(Cell cell)
         {
-            cell.Terrain?.Tick(cell.Lat);
+            cell.TickTerrain();
             if (cell.Terrain != null)
             {
                 CurrentCensus.Add(cell.Terrain);
@@ -184,38 +98,30 @@ namespace SimEarth2020
         }
 
         private Random rand = new Random();
-
+        public Random Random { get => rand; }
         public void Start()
         {
             ProgressBar progressBar = new ProgressBar() { IsIndeterminate = true };
 
-            Popup popup = new Popup() { Placement = PlacementMode.Center, PlacementTarget = Controller, Width = 200, Height = 80 };
+            Popup popup = new Popup() { Placement = PlacementMode.Center, PlacementTarget = Controller as UIElement, Width = 200, Height = 80 };
             popup.Child = progressBar;
             popup.IsOpen = true;
             var watch = System.Diagnostics.Stopwatch.StartNew();
             cells = new Cell[Width, Height];
             for (int i = 0; i < Width; i++)
             {
-                Controller.WorldGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(16) });
+                Controller.Grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(16) });
             }
             for (int i = 0; i < Height; i++)
             {
-                Controller.WorldGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(16) });
+                Controller.Grid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(16) });
             }
             for (int x = 0; x < Width; x++)
             {
                 for (int y = 0; y < Height; y++)
                 {
                     var cell = new Cell(this, x, y);
-                    cell.MouseDown += (sender, args) => { (sender as Cell).DoClick(); };
-                    cell.MouseEnter += (sender, args) =>
-                    {
-                        if (args.LeftButton == MouseButtonState.Pressed)
-                            (sender as Cell).DoClick();
-                    };
-                    Grid.SetRow(cell, y);
-                    Grid.SetColumn(cell, x);
-                    Controller.WorldGrid.Children.Add(cell);
+                    Controller.AddToGrid(cell.Display);
                     cell.Terrain = new Terrain(TerrainKind.Rock);
                     cells[x, y] = cell;
                 }
@@ -258,16 +164,17 @@ namespace SimEarth2020
             while (budget-- > 0)
             {
                 int x = rand.Next(0, Width);
-                int y = (int)(GetNormal() * Sigma + LatitudeToY(latitude));
+                int y = (int)(rand.GetNormal() * Sigma + LatitudeToY(latitude));
                 y = (y + Height) % Height;
                 if (onWater || cells[x, y].Terrain.Kind != TerrainKind.Ocean)
                 {
                     cells[x, y].Terrain = new Terrain(kind);
+                    Debug.WriteLine($"Set {kind} at latitude {cells[x,y].Lat.Degrees}°");
                 }
             }
         }
 
-        private int LatitudeToY(Angle latitude)
+        public int LatitudeToY(Angle latitude)
         {
             return (int)(Math.Sin(latitude.Radians) * Height / 2 + Height / 2);
         }
@@ -288,16 +195,6 @@ namespace SimEarth2020
             }
         }
 
-        /// <summary>
-        /// Returns a Gaussian value with mean 0 and stddev 1
-        /// </summary>
-        /// <returns></returns>
-        private double GetNormal()
-        {
-            double u1 = rand.NextDouble();
-            double u2 = rand.NextDouble();
-            return Math.Sqrt(-2 * Math.Log(u1)) * Math.Cos(2 * Math.PI * u2);
-        }
 
         private int SetTerrainAround(int x, int y, double radius, TerrainKind kind)
         {
@@ -307,8 +204,8 @@ namespace SimEarth2020
             int ret = cover;
             while (cover-- > 0)
             {
-                int candX = (int)(x + GetNormal() * radius / 6);
-                int candY = (int)(y + GetNormal() * radius / 6);
+                int candX = (int)(x + rand.GetNormal() * radius / 6);
+                int candY = (int)(y + rand.GetNormal() * radius / 6);
                 candX = (candX + Width) % Width;
                 candY = (candY + Height) % Height;
                 if (cells[candX, candY].Terrain == null || cells[candX, candY].Terrain.Kind != TerrainKind.Ocean)

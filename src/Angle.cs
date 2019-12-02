@@ -44,7 +44,7 @@ namespace SimEarth2020
             return Radians == other.Radians;
         }
 
-        internal static Angle FromDegrees(int v)
+        public static Angle FromDegrees(int v)
         {
             return new Angle(v * Math.PI / 180.0);
         }

@@ -12,11 +12,12 @@ namespace SimEarth2020
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window, INotifyPropertyChanged
+    public partial class MainWindow : Window, IController
     {
         // INotifyPropertyChanged
         public event PropertyChangedEventHandler PropertyChanged = delegate { };
-        internal void RaisePropertyChanged(string propName)
+
+        public void RaisePropertyChanged(string propName)
         {
             PropertyChanged(this, new PropertyChangedEventArgs(propName));
         }
@@ -41,6 +42,7 @@ namespace SimEarth2020
         {
             InitializeComponent();
             this.DataContext = this;
+
         }
 
         private void Add_Click(object sender, RoutedEventArgs e)
@@ -184,6 +186,10 @@ namespace SimEarth2020
             }
         }
 
+        public void AddToGrid(ICellDisplay display)
+        {
+            Grid.Children.Add(display as UIElement);
+        }
         private void EnsurePopupPanelButtons<TEnum>(Panel container, Tool tool)
 where TEnum : struct, IConvertible, IComparable, IFormattable
         {
@@ -341,12 +347,14 @@ where TEnum : struct, IConvertible, IComparable, IFormattable
             return new World(this)
             {
                 Name = "Random world",
-                Width = 60,
+                Width = 100,
                 Age = 900e3,
                 Radius = 6.3e6,
                 Energy = 1000
             };
         }
+
+        public Grid Grid => WorldGrid;
 
         private void NewGame(object sender, System.Windows.Input.ExecutedRoutedEventArgs e)
         {
@@ -376,6 +384,11 @@ where TEnum : struct, IConvertible, IComparable, IFormattable
             }
             lfg.Show();
             lfg.Closed += (s, a) => { lfg = null; };
+        }
+
+        public ICellDisplay GetCellDisplay(Cell cell)
+        {
+            return new CellDisplay(cell);
         }
     }
 }

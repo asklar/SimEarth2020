@@ -6,7 +6,7 @@
              xmlns:local="clr-namespace:SimEarth2020"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-    <Grid Name="Inspect" Width="300" Height="80" Background="DarkBlue" >
+    <Grid Name="Inspect" Width="300" Height="100" Background="DarkBlue" >
         <Grid.ColumnDefinitions>
             <ColumnDefinition/>
             <ColumnDefinition/>
@@ -16,7 +16,10 @@
             <StackPanel Margin="3" HorizontalAlignment="Stretch">
                 <TextBlock Text="Terrain" FontSize="16" Background="Olive" Foreground="White" TextAlignment="Center"/>
                 <TextBlock x:Name="Location" Text="Lat 30 Long 80"/>
-                <TextBlock x:Name="TerrainType" Text="Grass"/>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock x:Name="TerrainType" Text="Grass" />
+                    <TextBlock x:Name="Temperature" Text="280" Margin="10,0,10,0"/>
+                </StackPanel>
                 <TextBlock x:Name="Food" Text="350"/>
             </StackPanel>
         </StackPanel>

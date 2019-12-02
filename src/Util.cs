@@ -15,6 +15,18 @@ namespace SimEarth2020
             return (T)p;
         }
 
+
+        /// <summary>
+        /// Returns a Gaussian value with mean 0 and stddev 1
+        /// </summary>
+        /// <returns></returns>
+        public static double GetNormal(this Random rand)
+        {
+            double u1 = rand.NextDouble();
+            double u2 = rand.NextDouble();
+            return Math.Sqrt(-2 * Math.Log(u1)) * Math.Cos(2 * Math.PI * u2);
+        }
+
         public static string MakeEnumName(string v)
         {
             string r = "";

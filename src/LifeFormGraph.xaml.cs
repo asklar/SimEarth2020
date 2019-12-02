@@ -32,10 +32,10 @@ namespace SimEarth2020
             string[] names = Enum.GetNames(typeof(AnimalKind));
             Census census = world.CurrentCensus;
             StackPanel p = new StackPanel() { Width = names.Length * (8 + 1), Height = 100, 
-                Orientation = Orientation.Horizontal, Background = new SolidColorBrush(Colors.AliceBlue) };
+                Orientation = Orientation.Horizontal, Background = Brushes.AliceBlue };
             for (int i = 0; i < names.Length; i++)
             {
-                Rectangle rectangle = new Rectangle() { Width = 8, Margin = new Thickness(.5), Height = census.TotalAnimals((AnimalKind)i), Fill = new SolidColorBrush(Colors.Red) };
+                Rectangle rectangle = new Rectangle() { Width = 8, Margin = new Thickness(.5), Height = census.TotalAnimals((AnimalKind)i), Fill = Brushes.Red };
                 int kind = i; // Capture this so the callback doesn't use i which gets updated each iteration
                 string name = names[i];
                 rectangle.MouseEnter += (s, a) =>
@@ -56,7 +56,7 @@ namespace SimEarth2020
         private Panel ShowHistory(int kind)
         {
             modeIsGraph = true;
-            Canvas canvas = new Canvas() { Width = ActualWidth, Height = ActualHeight - 50, Background = new SolidColorBrush(Colors.AliceBlue) };
+            Canvas canvas = new Canvas() { Width = ActualWidth, Height = ActualHeight - 50, Background = Brushes.AliceBlue };
             currentKind = (AnimalKind)kind;
             lastX = -1;
             canvas.MouseDown += (s, a) => { this.Content = ShowBarGraph(); };

@@ -28,6 +28,7 @@ namespace SimEarth2020
             Location.Text = cell.LatLongString();
             TerrainType.Text = cell.Terrain.Kind.ToString();
             Food.Text = cell.Terrain.RemainingFood.ToString();
+            Temperature.Text = $"{cell.Temperature.Celsius:N1}°";
 
             AnimalKind.Text = cell.Animal != null ? cell.Animal.Kind.ToString() : "None";
             Population.Text = $"Pop: {cell.Animal?.Population} HP {cell.Animal?.TotalHP}";
