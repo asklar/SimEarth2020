@@ -47,7 +47,8 @@ namespace SimEarthTests
             watch.Restart();
             World.Terraform();
             watch.Stop();
-            Assert.IsTrue(watch.ElapsedMilliseconds / benchmark < 1e8);
+            double k = watch.ElapsedMilliseconds / benchmark;
+            Assert.IsTrue(k < 1e8, $"{k} cycles");
         }
 
         [Test]
