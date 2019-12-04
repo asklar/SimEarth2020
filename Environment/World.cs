@@ -164,7 +164,8 @@ namespace Environment
 
         public int LatitudeToY(Angle latitude)
         {
-            return (int)(- (2 * latitude.Radians / Math.PI ) * (Height / 2.0) + (Height / 2.0));
+            double y = -(2 * latitude.Radians / Math.PI) * (Height / 2) + (Height / 2);
+            return (int)(y + .5);
         }
 
         public Angle YToLatitude(int y)

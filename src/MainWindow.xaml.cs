@@ -3,10 +3,12 @@ using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Media;
+using System.Threading;
 using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using System.Windows.Media;
 
 namespace SimEarth2020
 {
@@ -359,39 +361,59 @@ where TEnum : struct, IConvertible, IComparable, IFormattable
         {
             var world = GetNewWorld();
             CurrentWorld = world;
-            WorldGrid.Visibility = Visibility.Hidden;
-            WorldGrid.Children.Clear();
-            WorldGrid.RenderTransform = ScaleTransform;
-            for (int i = 0; i < Width; i++)
-            {
-                WorldGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(16) });
-            }
-            for (int i = 0; i < Height; i++)
-            {
-                WorldGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(16) });
-            }
+            var progress = new ProgressBar() { Minimum = 0, Maximum = 100, Value = 50, VerticalAlignment = VerticalAlignment.Center, Width = 200 };
+            var status = new TextBlock() { Text = "test", TextAlignment = TextAlignment.Center, HorizontalAlignment = HorizontalAlignment.Stretch };
+            StackPanel panel = new StackPanel() { MinWidth = 200, MinHeight = 80, Background = Brushes.AntiqueWhite, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
 
-            world.Start();
-            world.Terraform();
-            WorldGrid.Visibility = Visibility.Visible;
-            Scale = .33;
-            if (timer != null)
+            panel.Children.Add(progress);
+            panel.Children.Add(status);
+            Popup popup = new Popup() { PlacementTarget = WorldGrid, PopupAnimation = PopupAnimation.Slide,
+                Placement = PlacementMode.Center, Child = panel, IsOpen = true };
+
+            new Thread(() =>
             {
-                timer.Stop();
-            }
-            timer = new Timer(1000);
-            timer.Elapsed += (sender, args) =>
-            {
-                Dispatcher.Invoke(() =>
+                Thread.Sleep(100);
+                Dispatcher.BeginInvoke(new Action(
+                    () =>
                 {
-                    world.Tick();
-                    lfg?.Update();
-                });
-            };
-            timer.Start();
+                    WorldGrid.Children.Clear();
+                    WorldGrid.RenderTransform = ScaleTransform;
+                    for (int i = 0; i < Width; i++)
+                    {
+                        WorldGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(16) });
+                    }
+                    progress.Value += 5;
+                    for (int i = 0; i < Height; i++)
+                    {
+                        WorldGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(16) });
+                    }
+                    progress.Value += 5;
+
+                    world.Start();
+                    world.Terraform();
+                    Scale = .33;
+                    if (timer != null)
+                    {
+                        timer.Stop();
+                    }
+                    timer = new System.Timers.Timer(1000);
+                    timer.Elapsed += (sender, args) =>
+                    {
+                        Dispatcher.Invoke(() =>
+                        {
+                            world.Tick();
+                            lfg?.Update();
+                        });
+                    };
+                    timer.Start();
+                    Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.ApplicationIdle, new Action(() => { popup.IsOpen = false; }));
+                }
+
+                ));
+            }).Start();
         }
 
-        Timer timer;
+        System.Timers.Timer timer;
 
         LifeFormBarGraph lfg;
         private void LifeFormBiomeGraph_Click(object sender, RoutedEventArgs e)
