@@ -100,9 +100,9 @@ namespace Environment
                 for (int y = 0; y < Height; y++)
                 {
                     var cell = new Cell(this, x, y);
-                    Controller.AddToGrid(cell.Display);
                     cell.Terrain = new Terrain(TerrainKind.Rock);
                     cells[x, y] = cell;
+                    Controller.AddToGrid(cell.Display);
                 }
             }
             watch.Stop();
@@ -137,6 +137,14 @@ namespace Environment
             Debug.WriteLine($"Terraform: {stopwatch.ElapsedMilliseconds} ms");
         }
 
+        /// <summary>
+        /// Creates terrain of the required kind around a particular latitude
+        /// </summary>
+        /// <param name="latitude">The Latitude to create terrain around. Note that you must call this function again with the negative Latitude value to produce somewhat symmetrical terrains</param>
+        /// <param name="Sigma">Standard deviation of how far to stray from the central latitude</param>
+        /// <param name="Coverage">How densely to cover with this terrain</param>
+        /// <param name="kind">The kind of terrain</param>
+        /// <param name="onWater">Indicates whether to put terrain over Ocean. False will not overwrite Ocean terrain.</param>
         internal void MakeLatitudeTerrain(Angle latitude, double Sigma, double Coverage, TerrainKind kind, bool onWater)
         {
             int budget = (int)(Width * Coverage);
@@ -156,9 +164,25 @@ namespace Environment
 
         public int LatitudeToY(Angle latitude)
         {
-            return (int)(- (2 * latitude.Radians / Math.PI ) * (Height / 2) + (Height / 2));
+            return (int)(- (2 * latitude.Radians / Math.PI ) * (Height / 2.0) + (Height / 2.0));
         }
 
+        public Angle YToLatitude(int y)
+        {
+            if (y < 0 || y > Height) throw new ArgumentException($"Y must be between 0 and {Height}");
+            double a = (y - Height / 2.0) / (-2 * Math.PI);
+            return new Angle(a);
+        }
+
+
+        /// <summary>
+        /// Creates blotch-like terrains of the specified kind
+        /// </summary>
+        /// <param name="MeanRadius">Mean blotch radius</param>
+        /// <param name="Sigma">Standard deviation of the blotch radius</param>
+        /// <param name="Coverage">How densely to cover</param>
+        /// <param name="kind">The kind of terrain to use</param>
+        /// <param name="maxLatitude">The maximum absolute latitude allowed</param>
         private void CoverWithTerrain(int MeanRadius, double Sigma, double Coverage, TerrainKind kind, Angle maxLatitude)
         {
             Stopwatch sw = Stopwatch.StartNew();
@@ -179,6 +203,14 @@ namespace Environment
         }
 
 
+        /// <summary>
+        /// Creates a small blotch of terrain around a particular location in the map
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <param name="radius"></param>
+        /// <param name="kind"></param>
+        /// <returns></returns>
         private int SetTerrainAround(int x, int y, double radius, TerrainKind kind)
         {
             // Debug.WriteLine($"Set {kind} around ({x}, {y}) radius={radius}");
