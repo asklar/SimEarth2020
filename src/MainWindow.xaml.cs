@@ -1,5 +1,6 @@
 ﻿using Environment;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Media;
@@ -46,6 +47,27 @@ namespace SimEarth2020
             InitializeComponent();
             this.DataContext = this;
             Closed += (_, _1) => { timer?.Stop(); };
+            cellDisplayBatch = new CellDisplayBatch((cellDisplays) =>
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    progress.Value += 10;
+                }, System.Windows.Threading.DispatcherPriority.Render);
+                Dispatcher.BeginInvoke( new Action(() =>
+                {
+                    foreach (var d in cellDisplays)
+                    {
+                        if (d != null)
+                        {
+                            WorldGrid.Children.Add(d as UIElement);
+                        }
+                        else
+                        {
+                            return; // we are in the final flush and found the last element
+                        }
+                    }
+                }));
+            });
         }
 
         private void Add_Click(object sender, RoutedEventArgs e)
@@ -189,10 +211,55 @@ namespace SimEarth2020
             }
         }
 
+        class CellDisplayBatch
+        {
+            private Action<IEnumerable<ICellDisplay>> flusher;
+            public CellDisplayBatch(Action<IEnumerable<ICellDisplay>> flusher)
+            {
+                this.flusher = flusher;
+            }
+            private const int CellDisplayBatchSize = 100;
+            private ICellDisplay[] cellDisplays = new ICellDisplay[CellDisplayBatchSize];
+            private int nextIndexToUse = 0;
+            public void Add(ICellDisplay c)
+            {
+                cellDisplays[nextIndexToUse++] = c;
+                if (nextIndexToUse < CellDisplayBatchSize)
+                {
+                    // do nothing, we'll process these during a flush
+                }
+                else
+                {
+                    Flush();
+                }
+            }
+
+            public void Flush()
+            {
+                flusher(cellDisplays);
+                for (int i = 0; i < cellDisplays.Length; i++)
+                {
+                    cellDisplays[i] = null;
+                }
+                nextIndexToUse = 0;
+            }
+
+
+        }
+
+        private CellDisplayBatch cellDisplayBatch;
         public void AddToGrid(ICellDisplay display)
         {
-            WorldGrid.Children.Add(display as UIElement);
+            if (display != null)
+            {
+                cellDisplayBatch.Add(display);
+            }
+            else
+            {
+                cellDisplayBatch.Flush();
+            }
         }
+
         private void EnsurePopupPanelButtons<TEnum>(Panel container, Tool tool)
 where TEnum : struct, IConvertible, IComparable, IFormattable
         {
@@ -359,55 +426,72 @@ where TEnum : struct, IConvertible, IComparable, IFormattable
 
         private void NewGame(object sender, System.Windows.Input.ExecutedRoutedEventArgs e)
         {
+            NewGame();
+        }
+
+        public void NewGame()
+        {
             var world = GetNewWorld();
+            NewGame(world);
+        }
+
+        ProgressBar progress;
+        public void NewGame(World world)
+        {
             CurrentWorld = world;
-            var progress = new ProgressBar() { Minimum = 0, Maximum = 100, Value = 50, VerticalAlignment = VerticalAlignment.Center, Width = 200 };
-            var status = new TextBlock() { Text = "test", TextAlignment = TextAlignment.Center, HorizontalAlignment = HorizontalAlignment.Stretch };
+            progress = new ProgressBar() { Minimum = 0, Maximum = 100, Value = 50, VerticalAlignment = VerticalAlignment.Center, Width = 200 };
+            var status = new TextBlock() { Text = $"Creating world {world.Name}", TextAlignment = TextAlignment.Center, HorizontalAlignment = HorizontalAlignment.Stretch };
             StackPanel panel = new StackPanel() { MinWidth = 200, MinHeight = 80, Background = Brushes.AntiqueWhite, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
 
             panel.Children.Add(progress);
             panel.Children.Add(status);
-            Popup popup = new Popup() { PlacementTarget = WorldGrid, PopupAnimation = PopupAnimation.Slide,
-                Placement = PlacementMode.Center, Child = panel, IsOpen = true };
+            Popup popup = new Popup()
+            {
+                PlacementTarget = WorldGrid,
+                PopupAnimation = PopupAnimation.Slide,
+                Placement = PlacementMode.Center,
+                Child = panel,
+                IsOpen = true
+            };
 
             new Thread(() =>
             {
                 Thread.Sleep(100);
                 Dispatcher.BeginInvoke(new Action(
                     () =>
-                {
-                    WorldGrid.Children.Clear();
-                    WorldGrid.RenderTransform = ScaleTransform;
-                    for (int i = 0; i < Width; i++)
                     {
-                        WorldGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(16) });
-                    }
-                    progress.Value += 5;
-                    for (int i = 0; i < Height; i++)
-                    {
-                        WorldGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(16) });
-                    }
-                    progress.Value += 5;
-
-                    world.Start();
-                    world.Terraform();
-                    Scale = .33;
-                    if (timer != null)
-                    {
-                        timer.Stop();
-                    }
-                    timer = new System.Timers.Timer(1000);
-                    timer.Elapsed += (sender, args) =>
-                    {
-                        Dispatcher.Invoke(() =>
+                        WorldGrid.Children.Clear();
+                        WorldGrid.RenderTransform = ScaleTransform;
+                        for (int i = 0; i < Width; i++)
                         {
-                            world.Tick();
-                            lfg?.Update();
-                        });
-                    };
-                    timer.Start();
-                    Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.ApplicationIdle, new Action(() => { popup.IsOpen = false; }));
-                }
+                            WorldGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(16) });
+                        }
+                        progress.Value += 5;
+                        for (int i = 0; i < Height; i++)
+                        {
+                            WorldGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(16) });
+                        }
+                        progress.Value += 5;
+                        Scale = .33;
+
+                        world.Start();
+                        world.Terraform();
+                        if (timer != null)
+                        {
+                            timer.Stop();
+                        }
+                        timer = new System.Timers.Timer(1000);
+                        timer.Elapsed += (sender, args) =>
+                        {
+                            Dispatcher.Invoke(() =>
+                            {
+                                world.Tick();
+                                lfg?.Update();
+                            });
+                        };
+                        timer.Start();
+                        Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.ApplicationIdle, new Action(() => { popup.IsOpen = false; }));
+                    }
 
                 ));
             }).Start();
@@ -428,8 +512,7 @@ where TEnum : struct, IConvertible, IComparable, IFormattable
 
         public ICellDisplay GetCellDisplay(Cell cell)
         {
-            var cd = new CellDisplay();
-            cd.Initialize(cell);
+            var cd = new CellDisplay(cell);
             return cd;
         }
     }

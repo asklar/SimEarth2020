@@ -11,9 +11,9 @@ namespace Environment
         public const double RotationalFactor = 4; // 4 for rapidly rotating bodies (Earth), 2 for slowly rotating bodies.
         public const double SolarLuminosity = 3.828e26;
         public const double DistanceToTheSun = 1.495978707e11;
-        public World(IController m)
+        public World(IController controller)
         {
-            Controller = m;
+            Controller = controller;
         }
 
         private double age;
@@ -95,9 +95,9 @@ namespace Environment
             var watch = System.Diagnostics.Stopwatch.StartNew();
             cells = new Cell[Width, Height];
 
-            for (int x = 0; x < Width; x++)
+            for (int y = 0; y < Height; y++)
             {
-                for (int y = 0; y < Height; y++)
+                for (int x = 0; x < Width; x++)
                 {
                     var cell = new Cell(this, x, y);
                     cell.Terrain = new Terrain(TerrainKind.Rock);
@@ -105,6 +105,7 @@ namespace Environment
                     Controller.AddToGrid(cell.Display);
                 }
             }
+            Controller.AddToGrid(null);
             watch.Stop();
             Controller.SetStatus($"Created world in {watch.ElapsedMilliseconds} ms");
         }

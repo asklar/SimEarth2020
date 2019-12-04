@@ -46,6 +46,11 @@ namespace SimEarthTests
             return k;
         }
 
+        public double GetEllapsedMilliseconds(double cycleCount)
+        {
+            return cycleCount * benchmark;
+        }
+
         public double Profile(Action action, double expectedCycleCount)
         {
             double k = Profile(action);
