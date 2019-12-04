@@ -5,7 +5,6 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Media;
 using System.Threading;
-using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -53,20 +52,20 @@ namespace SimEarth2020
                 {
                     progress.Value += 10;
                 }, System.Windows.Threading.DispatcherPriority.Render);
-                Dispatcher.BeginInvoke( new Action(() =>
-                {
-                    foreach (var d in cellDisplays)
-                    {
-                        if (d != null)
-                        {
-                            WorldGrid.Children.Add(d as UIElement);
+                Dispatcher.BeginInvoke(new Action(() =>
+               {
+                   foreach (var d in cellDisplays)
+                   {
+                       if (d != null)
+                       {
+                           WorldGrid.Children.Add(d as UIElement);
+                       }
+                       else
+                       {
+                           return; // we are in the final flush and found the last element
                         }
-                        else
-                        {
-                            return; // we are in the final flush and found the last element
-                        }
-                    }
-                }));
+                   }
+               }));
             });
         }
 

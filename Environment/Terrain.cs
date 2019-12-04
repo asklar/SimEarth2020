@@ -53,7 +53,7 @@ namespace Environment
 
 
             double U2 = .5; // Wind Speed [m s^-1]
-            double E_mm_per_day = (m_kPa * Rn + gamma * 6.43 * (1 + .536 * U2 )*delta_e) / (lambda_v*(m_kPa+gamma));
+            double E_mm_per_day = (m_kPa * Rn + gamma * 6.43 * (1 + .536 * U2) * delta_e) / (lambda_v * (m_kPa + gamma));
             return E_mm_per_day;
         }
 

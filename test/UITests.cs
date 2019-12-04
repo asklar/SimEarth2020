@@ -1,10 +1,8 @@
 ﻿using NUnit.Framework;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using SimEarth2020;
-using System.Threading;
+using System;
 using System.Diagnostics;
+using System.Threading;
 
 namespace SimEarthTests
 {
@@ -25,7 +23,7 @@ namespace SimEarthTests
         App app;
         Mutex mutex;
         double duration = 0;
-        
+
         [OneTimeSetUp]
         public void Setup()
         {
@@ -35,11 +33,11 @@ namespace SimEarthTests
             thread.Name = "App Thread";
             thread.Start();
             while (mutex == null) Thread.Yield();
-            
+
             mutex.WaitOne();
             Assert.IsNotNull(app);
         }
-        
+
         [OneTimeTearDown]
         public void Teardown()
         {

@@ -1,8 +1,6 @@
 ﻿using Environment;
 using NUnit.Framework;
-using SimEarth2020;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 
@@ -29,7 +27,7 @@ namespace SimEarthTests
             perf.Profile(() => World.Start(), 8e6);
         }
 
- 
+
         [Test]
         public void PerformanceWorld()
         {

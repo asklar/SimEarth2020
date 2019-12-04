@@ -1,5 +1,4 @@
 ﻿using Environment;
-using SimEarth2020;
 using System;
 using System.ComponentModel;
 
