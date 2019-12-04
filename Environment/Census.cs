@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace SimEarth2020
+namespace Environment
 {
     public class Census
     {

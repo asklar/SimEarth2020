@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 
-namespace SimEarth2020
+namespace Environment
 {
     public interface IController : INotifyPropertyChanged
     {

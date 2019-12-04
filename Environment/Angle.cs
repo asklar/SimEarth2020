@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace SimEarth2020
+namespace Environment
 {
     public struct Angle : IEquatable<Angle>
     {
@@ -41,12 +41,18 @@ namespace SimEarth2020
 
         public bool Equals(Angle other)
         {
-            return Radians == other.Radians;
+            const double epsilon = 0.01;
+            return Math.Abs(Radians - other.Radians) < epsilon;
         }
 
         public static Angle FromDegrees(int v)
         {
             return new Angle(v * Math.PI / 180.0);
+        }
+
+        public override string ToString()
+        {
+            return $"{Degrees}°";
         }
     }
 }

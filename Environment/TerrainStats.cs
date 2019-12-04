@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace SimEarth2020
+namespace Environment
 {
     public class TerrainStats
     {
@@ -10,6 +10,7 @@ namespace SimEarth2020
         public double Albedo { get; set; }
         public double Emissivity { get; set; }
 
+        public double Humidity { get; set; }
         public Temperature GetTemperature(Angle latitude)
         {
             // Intensity radiated = Intensity absorbed
@@ -39,6 +40,7 @@ namespace SimEarth2020
                 int mf = 0;
                 double alb = 0;
                 double em = 1;
+                double h = .56;
                 switch (kind)
                 {
                     case TerrainKind.Forest:
@@ -46,6 +48,7 @@ namespace SimEarth2020
                         mf = 1000;
                         alb = .15;
                         em = .98;
+                        h = .6;
                         break;
                     case TerrainKind.Grass:
                         gpt = 25;
@@ -58,12 +61,14 @@ namespace SimEarth2020
                         mf = 1800;
                         alb = (.15 + .18) / 2;
                         em = .98;
+                        h = .97;
                         break;
                     case TerrainKind.Ocean:
                         gpt = 20;
                         mf = 4000;
                         alb = .06;
                         em = .95;
+                        h = 1;
                         break;
                     case TerrainKind.Swamp:
                         gpt = 40;
@@ -82,18 +87,21 @@ namespace SimEarth2020
                         mf = 300;
                         alb = .8;
                         em = .98;
+                        h = .15;
                         break;
                     case TerrainKind.Desert:
                         gpt = 0;
                         mf = 50;
                         alb = .4;
                         em = .65;
+                        h = .05;
                         break;
                     case TerrainKind.Rock:
                         gpt = 1;
                         mf = 150;
                         alb = .3;
                         em = .98;
+                        h = .1;
                         break;
                 }
                 stats[(int)kind] = new TerrainStats()
@@ -102,7 +110,8 @@ namespace SimEarth2020
                     MaxFood = mf,
                     GrowthPerTurn = gpt,
                     Albedo = alb,
-                    Emissivity = em
+                    Emissivity = em,
+                    Humidity = h,
                 };
             }
             return stats[(int)kind];

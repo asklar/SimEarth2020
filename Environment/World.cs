@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
-namespace SimEarth2020
+[assembly: InternalsVisibleTo("SimEarthTests")]
+namespace Environment
 {
     public class World
     {
@@ -17,7 +19,7 @@ namespace SimEarth2020
         private double age;
         private int energy;
 
-        internal IController Controller { get; set; }
+        public IController Controller { get; set; }
         public string Name { get; set; }
         public int Width { get; set; }
         public int Height { get => Width; }
@@ -55,7 +57,7 @@ namespace SimEarth2020
 
 
         public const int MaxCensusHistory = 30;
-        internal Census CurrentCensus;
+        public Census CurrentCensus;
         public void Tick()
         {
             var start = DateTime.Now;
@@ -135,14 +137,14 @@ namespace SimEarth2020
             Debug.WriteLine($"Terraform: {stopwatch.ElapsedMilliseconds} ms");
         }
 
-        private void MakeLatitudeTerrain(Angle latitude, double Sigma, double Coverage, TerrainKind kind, bool onWater)
+        internal void MakeLatitudeTerrain(Angle latitude, double Sigma, double Coverage, TerrainKind kind, bool onWater)
         {
             int budget = (int)(Width * Coverage);
-
+            int y0 = LatitudeToY(latitude);
             while (budget-- > 0)
             {
                 int x = rand.Next(0, Width);
-                int y = (int)(rand.GetNormal() * Sigma + LatitudeToY(latitude));
+                int y = (int)(rand.GetNormal() * Sigma + y0);
                 y = (y + Height) % Height;
                 if (onWater || cells[x, y].Terrain.Kind != TerrainKind.Ocean)
                 {
@@ -154,7 +156,7 @@ namespace SimEarth2020
 
         public int LatitudeToY(Angle latitude)
         {
-            return (int)(Math.Sin(latitude.Radians) * Height / 2 + Height / 2);
+            return (int)(- (2 * latitude.Radians / Math.PI ) * (Height / 2) + (Height / 2));
         }
 
         private void CoverWithTerrain(int MeanRadius, double Sigma, double Coverage, TerrainKind kind, Angle maxLatitude)
@@ -168,7 +170,7 @@ namespace SimEarth2020
             {
                 int x = rand.Next(0, Width);
                 int y = rand.Next(0, Height);
-                y = Math.Clamp(y, ymin, ymax);
+                y = Math.Clamp(y, ymax, ymin); // screen coordinates are upside down
                 var radius = (MeanRadius + (rand.NextDouble() - .5) * 3 * Sigma);
                 budget -= SetTerrainAround(x, y, radius, kind);
             }

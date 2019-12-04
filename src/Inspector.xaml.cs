@@ -1,4 +1,5 @@
-﻿using System.Windows.Controls;
+﻿using Environment;
+using System.Windows.Controls;
 
 namespace SimEarth2020
 {
@@ -14,7 +15,7 @@ namespace SimEarth2020
 
         internal void Set(Cell cell)
         {
-            Location.Text = cell.LatLongString();
+            Location.Text = cell.LatLongString;
             TerrainType.Text = cell.Terrain.Kind.ToString();
             Food.Text = cell.Terrain.RemainingFood.ToString();
             Temperature.Text = $"{cell.Temperature.Celsius:N1}°";

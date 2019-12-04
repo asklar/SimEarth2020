@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace SimEarth2020
+namespace Environment
 {
     public class Cell
     {
@@ -23,10 +23,7 @@ namespace SimEarth2020
             }
         }
 
-        internal string LatLongString()
-        {
-            return $"{Math.Abs(Lat.Degrees):N0}° {(Lat.Degrees > 0 ? 'N' : 'S')}, {Math.Abs(Long.Degrees):N0}° {(Long.Degrees > 0 ? 'E' : 'W')}";
-        }
+        public string LatLongString => $"{Math.Abs(Lat.Degrees):N0}° {(Lat.Degrees > 0 ? 'N' : 'S')}, {Math.Abs(Long.Degrees):N0}° {(Long.Degrees > 0 ? 'E' : 'W')}";
 
         public Temperature Temperature
         {
@@ -168,7 +165,7 @@ namespace SimEarth2020
         {
             if (Animal.Population <= 0)
             {
-                World.Controller.SetStatus($"{Animal.Kind} ({LatLongString()}) died of famine");
+                World.Controller.SetStatus($"{Animal.Kind} ({LatLongString}) died of famine");
                 Animal = null;
                 return;
             }

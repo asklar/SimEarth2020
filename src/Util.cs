@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Windows;
 
 namespace SimEarth2020
@@ -13,18 +14,6 @@ namespace SimEarth2020
                 p = p.Parent as FrameworkElement;
             }
             return (T)p;
-        }
-
-
-        /// <summary>
-        /// Returns a Gaussian value with mean 0 and stddev 1
-        /// </summary>
-        /// <returns></returns>
-        public static double GetNormal(this Random rand)
-        {
-            double u1 = rand.NextDouble();
-            double u2 = rand.NextDouble();
-            return Math.Sqrt(-2 * Math.Log(u1)) * Math.Cos(2 * Math.PI * u2);
         }
 
         public static string MakeEnumName(string v)

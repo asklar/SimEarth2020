@@ -1,4 +1,5 @@
-﻿using SimEarth2020;
+﻿using Environment;
+using SimEarth2020;
 using System;
 using System.ComponentModel;
 
@@ -6,7 +7,7 @@ namespace SimEarthTests
 {
     public class MockController : IController
     {
-        public double Speed => throw new NotImplementedException();
+        public double Speed => 1;
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -25,9 +26,7 @@ namespace SimEarthTests
         }
 
         public void RaisePropertyChanged(string propName)
-        {
-            throw new NotImplementedException();
-        }
+        { }
 
         public void SetStatus(string s)
         { }
