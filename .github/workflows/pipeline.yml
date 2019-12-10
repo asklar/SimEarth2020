@@ -20,7 +20,11 @@ jobs:
       run: msbuild /restore /p:Platform=x86
       shell: cmd
       
+    - name: Dir appxrecipes
+      run: dir /s *.appxrecipe
+      shell: cmd
+      
     - name: Test with VSTest
-      run: '"C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\IDE\CommonExtensions\Microsoft\TestWindow\vstest.console.exe" /Framework:Frameworkuap10 ..\test\bin\x86\Debug\Tests.build.appxrecipe'
+      run: '"C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\IDE\CommonExtensions\Microsoft\TestWindow\vstest.console.exe" /Framework:Frameworkuap10 test\bin\x86\Debug\Tests.build.appxrecipe'
       shell: cmd
       
