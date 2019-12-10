@@ -14,9 +14,8 @@ namespace Tests
         const int HalfWidth = 35;
 
         PerfUtil perf;
-        [ClassInitialize]
-        public void Setup()
-        {
+        public ModelTests()
+        { 
             perf = new PerfUtil();
 
             Controller = new MockController();
