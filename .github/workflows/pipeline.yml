@@ -9,12 +9,14 @@ jobs:
 
     steps:
     - uses: actions/checkout@v1
-    
     - name: Setup MSBuild.exe
       uses: warrenbuckley/Setup-MSBuild@v1
+    - name: Display Environment Variables
+      run: cmd /c set
     
     - name: Build with MSBuild
       run: msbuild /restore /p:Platform=x86
+    
     
     - name: Test with VSTest
       run: vstest.console.exe /Framework:Frameworkuap10 test\bin\x86\Debug\Tests.build.appxrecipe
