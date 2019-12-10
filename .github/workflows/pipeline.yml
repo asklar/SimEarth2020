@@ -1,0 +1,16 @@
+name: Pipeline
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Build with MSBuild
+      run: msbuild /restore /p:Platform=x86
+    
+    - name: Test with VSTest
+      run: vstest.console.exe /Framework:Frameworkuap10 test\bin\x86\Debug\Tests.build.appxrecipe
