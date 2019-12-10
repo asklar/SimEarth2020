@@ -14,7 +14,7 @@ namespace Tests
         const int HalfWidth = 35;
 
         PerfUtil perf;
-        [TestInitialize]
+        [ClassInitialize]
         public void Setup()
         {
             perf = new PerfUtil();
@@ -24,8 +24,6 @@ namespace Tests
             World = new World(Controller, 2 * HalfWidth + 1) { Radius = 1 };
             watch.Stop();
             Assert.IsTrue(watch.ElapsedMilliseconds < 500);
-
-            // perf.Profile(() => World.Start(), 8e6);
         }
 
 
