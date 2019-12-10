@@ -17,6 +17,5 @@ jobs:
     - name: Build with MSBuild
       run: msbuild /restore /p:Platform=x86
     
-    
     - name: Test with VSTest
-      run: vstest.console.exe /Framework:Frameworkuap10 test\bin\x86\Debug\Tests.build.appxrecipe
+      run: C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\IDE\CommonExtensions\Microsoft\TestWindow\vstest.console.exe /Framework:Frameworkuap10 test\bin\x86\Debug\Tests.build.appxrecipe
