@@ -1,9 +1,11 @@
 ﻿using Environment;
 
-namespace SimEarthTests
+namespace Tests
 {
     public class MockCellDisplay : ICellDisplay
     {
+        public int X { get; set; }
+        public int Y { get; set; }
         public void UpdateAnimal()
         { }
 

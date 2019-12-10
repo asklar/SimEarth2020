@@ -1,20 +1,21 @@
 using Environment;
-using NUnit.Framework;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Diagnostics;
 
-namespace SimEarthTests
+namespace Tests
 {
+    [TestClass]
     public class UnitTests
     {
-        [SetUp]
+        [TestInitialize]
         public void Setup()
         {
         }
 
         const double epsilon = 0.015;
 
-        [Test]
+        [TestMethod]
         public void RandomNormal()
         {
             double mean = 0, stddev = 0;
@@ -46,7 +47,7 @@ namespace SimEarthTests
             stddev = Math.Sqrt(d / N);
         }
 
-        [Test]
+        [TestMethod]
         public void AnimalStats()
         {
             var animal = new AnimalPack(AnimalKind.Prokaryote, 10);
@@ -58,7 +59,7 @@ namespace SimEarthTests
             Assert.IsFalse(animal.Stats.CanWalk);
         }
 
-        [Test]
+        [TestMethod]
         public void TerrainStats()
         {
             Assert.IsTrue(Enum.GetValues(typeof(TerrainKind)).Length >= 9);
@@ -73,7 +74,7 @@ namespace SimEarthTests
             }
         }
 
-        [Test]
+        [TestMethod]
         public void TestTemperature()
         {
             Temperature zeroC = Temperature.FromKelvin(273.15);
@@ -83,7 +84,7 @@ namespace SimEarthTests
             Assert.AreEqual(64.4, eighteenC.Fahrenheit, epsilon);
         }
 
-        [Test]
+        [TestMethod]
         public void TestAngle()
         {
             var right = Angle.FromDegrees(90);

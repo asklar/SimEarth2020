@@ -1,8 +1,9 @@
 ﻿using Environment;
 using System;
 using System.ComponentModel;
+using Viewport2D;
 
-namespace SimEarthTests
+namespace Tests
 {
     public class MockController : IController
     {
@@ -14,9 +15,14 @@ namespace SimEarthTests
         {
         }
 
-        public void Click(Cell cell)
+        public void Click(Cell cell, int px, int py)
         {
             throw new NotImplementedException();
+        }
+
+        public IViewport CreateViewport(World world)
+        {
+            return new Viewport(world);
         }
 
         public ICellDisplay GetCellDisplay(Cell cell)

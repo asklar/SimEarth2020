@@ -1,11 +1,12 @@
 ﻿using Environment;
-using NUnit.Framework;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Diagnostics;
 using System.Linq;
 
-namespace SimEarthTests
+namespace Tests
 {
+    [TestClass]
     public class ModelTests
     {
         World World { get; set; }
@@ -13,28 +14,28 @@ namespace SimEarthTests
         const int HalfWidth = 35;
 
         PerfUtil perf;
-        [SetUp]
+        [TestInitialize]
         public void Setup()
         {
             perf = new PerfUtil();
 
             Controller = new MockController();
             var watch = Stopwatch.StartNew();
-            World = new World(Controller) { Width = 2 * HalfWidth + 1, Radius = 1 };
+            World = new World(Controller, 2 * HalfWidth + 1) { Radius = 1 };
             watch.Stop();
-            Assert.IsTrue(watch.ElapsedMilliseconds < 5);
+            Assert.IsTrue(watch.ElapsedMilliseconds < HalfWidth);
 
-            perf.Profile(() => World.Start(), 8e6);
+            // perf.Profile(() => World.Start(), 8e6);
         }
 
 
-        [Test]
+        [TestMethod]
         public void PerformanceWorld()
         {
             perf.Profile(() => World.Terraform(), 1e8);
         }
 
-        [Test]
+        [TestMethod]
         public void TestCell()
         {
             Cell cell = new Cell(World, HalfWidth, HalfWidth);
@@ -46,7 +47,7 @@ namespace SimEarthTests
 
         }
 
-        [Test]
+        [TestMethod]
         public void RoundtripLatitude1()
         {
             const int Y = 15;
@@ -54,7 +55,7 @@ namespace SimEarthTests
             Assert.AreEqual(Y, World.LatitudeToY(cell.Lat));
         }
 
-        [Test]
+        [TestMethod]
         public void RoundtripLatitude2()
         {
             Angle angle = Angle.FromDegrees(30);
@@ -62,11 +63,11 @@ namespace SimEarthTests
             Assert.AreEqual(angle.Degrees, cell2.Lat.Degrees, 1);
         }
 
-        [Test]
+        [TestMethod]
         public void CellTemperature()
         {
             Cell cell = new Cell(World, HalfWidth, HalfWidth);
-            Assert.Throws<NullReferenceException>(() => { var t = cell.Temperature; });
+            Assert.ThrowsException<NullReferenceException>(() => { var t = cell.Temperature; });
             cell.Terrain = new Terrain(TerrainKind.Ocean);
             Assert.IsTrue(cell.Temperature.Celsius > 20);
             cell.Y = World.LatitudeToY(Angle.FromDegrees(90));
@@ -74,16 +75,16 @@ namespace SimEarthTests
         }
 
 
-        [Test]
+        [TestMethod]
         public void LatitudeTerraforming()
         {
             World.MakeLatitudeTerrain(Angle.FromDegrees(0), 0, 1, TerrainKind.Desert, false);
-            var deserts = World.cells.Where(x => x.Terrain.Kind == TerrainKind.Desert);
+            var deserts = World.Cells.Where(x => x.Terrain.Kind == TerrainKind.Desert);
             Assert.IsTrue(deserts.All(p => p.Lat.Degrees == 0));
 
             Angle angle = Angle.FromDegrees(30);
             World.MakeLatitudeTerrain(angle, 0, 1, TerrainKind.Forest, false);
-            var forests = World.cells.Where(x => x.Terrain.Kind == TerrainKind.Forest);
+            var forests = World.Cells.Where(x => x.Terrain.Kind == TerrainKind.Forest);
             foreach (var d in forests)
             {
                 Debug.WriteLine(d.LatLongString);

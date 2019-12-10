@@ -1,22 +1,25 @@
-﻿using NUnit.Framework;
-using SimEarth2020;
-using System;
-using System.Diagnostics;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Threading;
 
-namespace SimEarthTests
+namespace Tests
 {
+    [TestClass]
     public class UITests
     {
         private void AppThreadProc()
         {
             mutex = new Mutex(true);
 
-            duration = perf.Profile(() => { app = new App(); app.InitializeComponent(); });
-            app.StartupUri = new Uri($"pack://application:,,,/{typeof(App).Assembly.GetName().Name};component/MainWindow.xaml", System.UriKind.Absolute);
+            duration = perf.Profile(() =>
+            {
+                app = new App();
+                app.InitializeComponent();
+            });
+            /// TODO?
+            /// app.StartupUri = new Uri($"pack://application:,,,/{typeof(App).Assembly.GetName().Name};component/MainWindow.xaml", System.UriKind.Absolute);
 
             mutex.ReleaseMutex(); // duration is ready
-            app.Run();
+            /// Application.Start((p) => { return app; });
         }
 
         PerfUtil perf;
@@ -24,7 +27,7 @@ namespace SimEarthTests
         Mutex mutex;
         double duration = 0;
 
-        [OneTimeSetUp]
+        [TestInitialize]
         public void Setup()
         {
             perf = new PerfUtil();
@@ -38,25 +41,26 @@ namespace SimEarthTests
             Assert.IsNotNull(app);
         }
 
-        [OneTimeTearDown]
+        [TestCleanup]
         public void Teardown()
         {
             mutex.ReleaseMutex();
-            app.Dispatcher.Invoke(() => app.Shutdown());
+            app.Exit();
         }
 
-        [Test, Order(1)]
+        /*
         public void CreateApp()
         {
             Assert.IsTrue(duration != 0);
             Assert.IsTrue(duration < 4e8);
         }
 
-        [Test, Order(2)]
         public void CreateWorld()
         {
-            MainWindow main = null;
+            MainPage main = null;
             double show = double.MaxValue;
+
+
             app.Dispatcher.Invoke(
                 () =>
                 {
@@ -68,7 +72,7 @@ namespace SimEarthTests
             app.Dispatcher.Invoke(
                 () =>
                 {
-                    duration = perf.Profile(() => main.NewGame(
+                    duration = perf.Profile(() => main.StartNewGame(
                         new Environment.World(main)
                         {
                             Radius = 1,
@@ -81,12 +85,16 @@ namespace SimEarthTests
             Assert.IsTrue(duration < 5e9);
 
             Stopwatch stopwatch = Stopwatch.StartNew();
+            /// TODO
+            /*
             app.Dispatcher.Invoke(() =>
             {
                 stopwatch.Stop();
             }, System.Windows.Threading.DispatcherPriority.ApplicationIdle);
-
-            Assert.IsTrue(stopwatch.ElapsedMilliseconds < 500);
-        }
+            */
+        /*
+        Assert.IsTrue(stopwatch.ElapsedMilliseconds < 500);
+    }
+    */
     }
 }
