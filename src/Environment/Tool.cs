@@ -1,6 +1,6 @@
 ﻿namespace Environment
 {
-    public sealed enum Tool
+    public enum Tool
     {
         None,
         Add,
