@@ -130,7 +130,7 @@
                 <Slider x:Name="ScaleControl" Minimum="1" Maximum="100" Value="{Binding Scaling,Mode=TwoWay}"/>
                 <TextBlock x:Name="ScalePct" Width="80"/>
                 <StackPanel Width="80" HorizontalAlignment="Left">
-                    <TextBlock x:Name="Budget" TextAlignment="Center" Width="80" Text="{Binding Path=Energy}"/>
+                    <TextBlock x:Name="Budget" TextAlignment="Center" Width="80"/>
                 </StackPanel>
             </StackPanel>
             <win2d:CanvasAnimatedControl Grid.Row="1" Grid.Column="1" x:Name="WorldCanvas" Draw="WorldCanvas_Draw" Update="WorldCanvas_Update" Background="Black" PointerPressed="WorldCanvas_PointerPressed" PointerExited="WorldCanvas_PointerExited" PointerMoved="WorldCanvas_PointerMoved"/>

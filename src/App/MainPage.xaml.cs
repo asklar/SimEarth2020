@@ -47,6 +47,10 @@ namespace SimEarth2020App
             {
                 CurrentlySelectedToolTextBlock.Text = Controller.CurrentToolString;
             }
+            else if (propName == "Energy")
+            {
+                Budget.Text = (Controller.CurrentWorld != null ? Controller.CurrentWorld.Energy : 0).ToString();
+            }
             PropertyChanged(this, new PropertyChangedEventArgs(propName));
         }
 
