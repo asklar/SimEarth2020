@@ -1,7 +1,7 @@
 ﻿using Environment;
 using Windows.UI.Xaml.Controls;
 
-namespace SimEarth2020
+namespace SimEarth2020App
 {
     /// <summary>
     /// Interaction logic for Inspector.xaml
@@ -13,7 +13,7 @@ namespace SimEarth2020
             InitializeComponent();
         }
 
-        internal void Set(Cell cell)
+        public void Set(Cell cell)
         {
             Location.Text = cell.LatLongString;
             TerrainType.Text = cell.Terrain.Kind.ToString();

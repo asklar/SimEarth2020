@@ -1,7 +1,6 @@
 ﻿using Environment;
 using Microsoft.Graphics.Canvas;
 using Microsoft.Graphics.Canvas.Text;
-using Microsoft.Graphics.Canvas.UI.Xaml;
 using System.Diagnostics;
 using System.Numerics;
 using Windows.Foundation;
@@ -17,7 +16,7 @@ namespace Viewport2D
         public Viewport(World world) { this.world = world; }
         public float RenderScale { get; set; } = 1;
         private int N { get => world.Size; }
-        private const float cellSize = 20;
+        public const float cellSize = 20;
         public float ScaledMapWidth => CellSize * N;
         DisplacementDirection lastDisplacementDirection = DisplacementDirection.None;
         private const float maxDisplacementSpeed = 30;
@@ -31,11 +30,15 @@ namespace Viewport2D
 
         public float Width { get; set; }
         public float Height { get; set; }
-        public void Draw(CanvasAnimatedDrawEventArgs args)
-        {
-            args.DrawingSession.Clear(Colors.CornflowerBlue);
-            args.DrawingSession.Antialiasing = CanvasAntialiasing.Aliased;
 
+        public void Draw(object arg)
+        {
+            var session = arg as CanvasDrawingSession;
+            if (session != null)
+            {
+                session.Clear(Colors.CornflowerBlue);
+                session.Antialiasing = CanvasAntialiasing.Aliased;
+            }
             var x0 = viewportStart.X / CellSize;
 
 
@@ -54,12 +57,14 @@ namespace Viewport2D
                     int xindex = (x + 16 * N) % N;
                     int yindex = (y + 16 * N) % N;
                     var cellDisplay = world.Cells[xindex, yindex].Display as ICellDisplay2D;
-                    cellDisplay.Draw(args.DrawingSession, renderX, renderY, CellSize);
+                    cellDisplay.Draw(arg, renderX, renderY, CellSize);
                 }
             }
-
-            args.DrawingSession.FillRectangle(new Rect(0, 0, 100, 20), Colors.BlanchedAlmond);
-            args.DrawingSession.DrawText($"{viewportStart}", new Vector2(0, 0), Colors.Black, format);
+            if (session != null)
+            {
+                session.FillRectangle(new Rect(0, 0, 100, 20), Colors.BlanchedAlmond);
+                session.DrawText($"{viewportStart}", new Vector2(0, 0), Colors.Black, format);
+            }
         }
 
         private CanvasTextFormat format = new CanvasTextFormat() { FontSize = 8 };

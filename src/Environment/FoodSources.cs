@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Environment
 {
@@ -18,7 +19,8 @@ namespace Environment
         }
 
         public FoodSources() { }
-        public FoodSources(AnimalKind[] kinds)
+
+        public FoodSources(IEnumerable<AnimalKind> kinds)
         {
             foreach (var kind in kinds)
             {

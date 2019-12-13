@@ -121,6 +121,7 @@
   <ItemGroup>
     <Compile Include="MockCellDisplay.cs" />
     <Compile Include="MockController.cs" />
+    <Compile Include="MockController2.cs" />
     <Compile Include="ModelTests.cs" />
     <Compile Include="PerfUtil.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -155,11 +156,22 @@
     <PackageReference Include="MSTest.TestFramework">
       <Version>1.4.0</Version>
     </PackageReference>
+    <PackageReference Include="Win2D.uwp">
+      <Version>1.24.0</Version>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\src\App\SimEarth2020App.csproj">
+      <Project>{A4CFD908-CB55-4285-92E1-8BDEE070508D}</Project>
+      <Name>SimEarth2020App</Name>
+    </ProjectReference>
     <ProjectReference Include="..\src\Environment\Environment.csproj">
-      <Project>{7544bc9a-c56e-4dda-afca-d10c06282ae1}</Project>
+      <Project>{7544BC9A-C56E-4DDA-AFCA-D10C06282AE1}</Project>
       <Name>Environment</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\src\SimEarth2020\SimEarth2020.csproj">
+      <Project>{9185A649-1D2B-4CFE-A258-6E0D092282E6}</Project>
+      <Name>SimEarth2020</Name>
     </ProjectReference>
     <ProjectReference Include="..\src\Viewport\Viewport.csproj">
       <Project>{94A86F06-A1CA-40EA-80F3-AEB0B08F6C2C}</Project>

@@ -1,6 +1,6 @@
 ﻿namespace Environment
 {
-    public class AnimalStats
+    public sealed class AnimalStats
     {
         public AnimalStats()
         {

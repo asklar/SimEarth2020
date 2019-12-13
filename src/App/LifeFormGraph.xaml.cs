@@ -6,7 +6,7 @@ using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Shapes;
 
-namespace SimEarth2020
+namespace SimEarth2020App
 {
     /// <summary>
     /// Interaction logic for LifeFormGraph.xaml

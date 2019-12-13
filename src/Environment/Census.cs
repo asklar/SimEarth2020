@@ -2,7 +2,7 @@
 
 namespace Environment
 {
-    public class Census
+    public sealed class Census
     {
         int[] animalPackCount;
         int[] totalAnimals;
@@ -15,12 +15,12 @@ namespace Environment
             terrainCount = new int[Enum.GetValues(typeof(TerrainKind)).Length];
             totalTerrainFoodAvailable = new int[Enum.GetValues(typeof(TerrainKind)).Length];
         }
-        public void Add(AnimalPack animal)
+        public void AddAnimal(AnimalPack animal)
         {
             animalPackCount[(int)animal.Kind]++;
             totalAnimals[(int)animal.Kind] += animal.Population;
         }
-        public void Add(Terrain terrain)
+        public void AddTerrain(Terrain terrain)
         {
             terrainCount[(int)terrain.Kind]++;
             totalTerrainFoodAvailable[(int)terrain.Kind] += terrain.RemainingFood;

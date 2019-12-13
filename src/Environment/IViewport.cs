@@ -13,7 +13,6 @@ namespace Environment
         void Scroll(DisplacementDirection dir);
         void StopScrolling();
         Cell GetCellAtPoint(Point pt);
-
-        // void Draw(Microsoft.Graphics.Canvas.UI.Xaml.CanvasAnimatedDrawEventArgs args);
+        void Draw(object arg);
     }
 }

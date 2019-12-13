@@ -1,6 +1,6 @@
-﻿namespace SimEarth2020
+﻿namespace Environment
 {
-    public enum Tool
+    public sealed enum Tool
     {
         None,
         Add,

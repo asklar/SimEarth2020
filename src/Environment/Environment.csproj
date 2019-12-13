@@ -137,6 +137,7 @@
     <Compile Include="Terrain.cs" />
     <Compile Include="TerrainKind.cs" />
     <Compile Include="TerrainStats.cs" />
+    <Compile Include="Tool.cs" />
     <Compile Include="Util.cs" />
     <Compile Include="World.cs" />
     <EmbeddedResource Include="Properties\Environment.rd.xml" />

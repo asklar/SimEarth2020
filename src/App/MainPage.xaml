@@ -1,9 +1,9 @@
-﻿<Page x:Class="SimEarth2020.MainPage"
+﻿<Page x:Class="SimEarth2020App.MainPage"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-      xmlns:local="using:SimEarth2020"
+      xmlns:local="using:SimEarth2020App"
       xmlns:win2d="using:Microsoft.Graphics.Canvas.UI.Xaml"
       mc:Ignorable="d">
     <StackPanel x:Name="Container">
@@ -17,7 +17,6 @@
                         <KeyboardAccelerator Modifiers="Control" Key="N" />
                     </MenuFlyoutItem.KeyboardAccelerators>
                 </MenuFlyoutItem>
-                <!-- TODO Command="{ApplicationCommands.New}" -->
                 <MenuFlyoutItem Text="Load"/>
                 <MenuFlyoutItem Text="Save"/>
                 <MenuFlyoutItem Text="Exit"/>
@@ -54,7 +53,7 @@
                     <MenuFlyoutItem Text="Fast"/>
                 </MenuFlyoutSubItem>
             </MenuBarItem>
-            
+
         </MenuBar>
         <Grid>
             <Grid.ColumnDefinitions>
@@ -101,7 +100,7 @@
                            VerticalOffset="0" IsLightDismissEnabled="True">
                         <StackPanel Background="YellowGreen" Name="Terraform" />
                     </Popup>
-                    <ToggleButton Content="Inspect" Grid.Row="2" Grid.Column="1" Click="Inspect_Click" x:Name="Inspect"/>
+                    <ToggleButton Content="Inspect" Grid.Row="2" Grid.Column="1" Click="Inspect_Click" x:Name="InspectBtn" />
                     <Popup IsOpen="{Binding IsChecked,ElementName=Inspect,Mode=TwoWay}"
                            HorizontalOffset="0" IsLightDismissEnabled="True" x:Name="InspectPopup">
                         <Popup.Child>
@@ -110,8 +109,8 @@
                     </Popup>
                 </Grid>
                 <StackPanel x:Name="CostPanel" Width="80" HorizontalAlignment="Left">
-                    <TextBlock x:Name="CurrentlySelectedTool" Text="{Binding CurrentToolString}"/>
-                    <TextBlock x:Name="Cost" HorizontalAlignment="Center" Text="{Binding CostString}"/>
+                    <TextBlock x:Name="CurrentlySelectedToolTextBlock"/>
+                    <TextBlock x:Name="CostTextBlock" HorizontalAlignment="Center" />
                 </StackPanel>
                 <StackPanel x:Name="DisplayPanel" Width="80" HorizontalAlignment="Left">
                     <ToggleButton Content="Oceans" IsChecked="True" HorizontalAlignment="Stretch"/>
@@ -126,7 +125,7 @@
                         <ToggleButton Content="Seaflow" HorizontalAlignment="Stretch"/>
                         <ToggleButton Content="Seaheat" HorizontalAlignment="Stretch"/>
                         <ToggleButton Content="Magma" HorizontalAlignment="Stretch"/>
-                    </StackPanel> 
+                    </StackPanel>
                 </StackPanel>
                 <Slider x:Name="ScaleControl" Minimum="1" Maximum="100" Value="{Binding Scaling,Mode=TwoWay}"/>
                 <TextBlock x:Name="ScalePct" Width="80"/>

@@ -2,7 +2,7 @@
 
 namespace Environment
 {
-    public class TerrainStats
+    public sealed class TerrainStats
     {
         public int GrowthPerTurn { get; set; }
         public TerrainKind Kind { get; set; }

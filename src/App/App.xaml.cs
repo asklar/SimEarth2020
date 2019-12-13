@@ -5,7 +5,7 @@ using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Navigation;
 
-namespace SimEarth2020
+namespace SimEarth2020App
 {
     /// <summary>
     /// Provides application-specific behavior to supplement the default Application class.

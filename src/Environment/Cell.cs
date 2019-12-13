@@ -2,7 +2,7 @@
 
 namespace Environment
 {
-    public class Cell
+    public sealed class Cell
     {
         public ICellDisplay Display { get; set; }
         public Cell(World world, int x, int y)
@@ -112,7 +112,7 @@ namespace Environment
                 return;
 
             // 0) Census
-            World.CurrentCensus.Add(Animal);
+            World.CurrentCensus.AddAnimal(Animal);
 
             // 1) Eat
             TickAnimal_Eat();
@@ -165,7 +165,8 @@ namespace Environment
         {
             if (Animal.Population <= 0)
             {
-                World.Controller.SetStatus($"{Animal.Kind} ({LatLongString}) died of famine");
+                /// TODO
+                /// World.Controller.SetStatus($"{Animal.Kind} ({LatLongString}) died of famine");
                 Animal = null;
                 return;
             }

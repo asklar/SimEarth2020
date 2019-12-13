@@ -8,17 +8,17 @@ namespace Environment
 {
     public class World
     {
-        public const double RotationalFactor = 4; // 4 for rapidly rotating bodies (Earth), 2 for slowly rotating bodies.
-        public const double SolarLuminosity = 3.828e26;
-        public const double DistanceToTheSun = 1.495978707e11;
+        internal const double RotationalFactor = 4; // 4 for rapidly rotating bodies (Earth), 2 for slowly rotating bodies.
+        internal const double SolarLuminosity = 3.828e26;
+        internal const double DistanceToTheSun = 1.495978707e11;
         public World(IController controller, int Size)
         {
             Controller = controller;
             this.Size = Size;
             Cells = new Cell[Size, Size];
-            Viewport = Controller.CreateViewport(this);
-            var watch = Stopwatch.StartNew();
 
+            controller.CurrentWorld = this; // must come before Controller.CreateViewport()
+            Viewport = Controller.CreateViewport();
             for (int y = 0; y < Height; y++)
             {
                 for (int x = 0; x < Width; x++)
@@ -28,8 +28,6 @@ namespace Environment
                     Cells[x, y] = cell;
                 }
             }
-            watch.Stop();
-            Controller.SetStatus($"Created world in {watch.ElapsedMilliseconds} ms");
         }
 
         public IViewport Viewport { get; private set; }
@@ -66,18 +64,18 @@ namespace Environment
             }
             return $"{age} {prefixes[index]}";
         }
-        public override string ToString()
+        public override sealed string ToString()
         {
             return $"{Name}: {GetAge()}yr";
         }
         private long tick = 0;
         public long CurrentTick { get => tick; }
 
-        public Queue<Census> CensusHistory = new Queue<Census>();
+        internal Queue<Census> CensusHistory = new Queue<Census>();
 
 
-        public const int MaxCensusHistory = 30;
-        public Census CurrentCensus;
+        private const int MaxCensusHistory = 30;
+        public Census CurrentCensus { get; set; }
         public void Tick()
         {
             var start = DateTime.Now;
@@ -104,12 +102,12 @@ namespace Environment
             cell.TickTerrain();
             if (cell.Terrain != null)
             {
-                CurrentCensus.Add(cell.Terrain);
+                CurrentCensus.AddTerrain(cell.Terrain);
             }
         }
 
         private Random rand = new Random();
-        public Random Random { get => rand; }
+        internal Random Random { get => rand; }
 
         public void Terraform()
         {
@@ -155,7 +153,7 @@ namespace Environment
             {
                 int x = rand.Next(0, Width);
                 int y = (int)(rand.GetNormal() * Sigma + y0);
-                y = (y + Height) % Height;
+                y = (y + 16 * Height) % Height;
                 if (onWater || Cells[x, y].Terrain.Kind != TerrainKind.Ocean)
                 {
                     Cells[x, y].Terrain = new Terrain(kind);
@@ -240,7 +238,7 @@ namespace Environment
             return 5;
         }
 
-        public const int MaxEnergy = 5000;
+        public int MaxEnergy { get; } = 5000;
         public int Energy
         {
             get => energy;

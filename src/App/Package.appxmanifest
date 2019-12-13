@@ -7,7 +7,7 @@
   IgnorableNamespaces="uap mp">
 
   <Identity
-    Name="6f931e22-dee3-40eb-ba25-6dd8ebffab19"
+    Name="SimEarth2020"
     Publisher="CN=asklar"
     Version="1.0.0.0" />
 
@@ -30,7 +30,7 @@
   <Applications>
     <Application Id="App"
       Executable="$targetnametoken$.exe"
-      EntryPoint="SimEarth2020.App">
+      EntryPoint="SimEarth2020App.App">
       <uap:VisualElements
         DisplayName="SimEarth2020"
         Square150x150Logo="Assets\Square150x150Logo.png"

@@ -13,8 +13,9 @@ namespace SimEarth2020
     {
         public CellDisplay2D(Cell cell) : base(cell) { }
 
-        public void Draw(CanvasDrawingSession s, float x, float y, float cellSize)
+        public void Draw(object arg, float x, float y, float cellSize)
         {
+            var s = arg as CanvasDrawingSession;
             s.FillRectangle(new Rect(x * cellSize, y * cellSize, cellSize, cellSize),
                 Background);
 

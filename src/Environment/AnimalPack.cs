@@ -1,6 +1,6 @@
 ﻿namespace Environment
 {
-    public class AnimalPack
+    public sealed class AnimalPack
     {
         public override string ToString()
         {

@@ -2,7 +2,7 @@
 
 namespace Environment
 {
-    public class Terrain
+    public sealed class Terrain
     {
         private static Random rand = new Random();
         public TerrainStats Stats { get; set; }

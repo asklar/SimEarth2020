@@ -2,7 +2,7 @@
 
 // The Content Dialog item template is documented at https://go.microsoft.com/fwlink/?LinkId=234238
 
-namespace SimEarth2020
+namespace SimEarth2020App
 {
     public sealed partial class ContentDialog1 : ContentDialog
     {
