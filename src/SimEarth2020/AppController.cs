@@ -1,15 +1,11 @@
 ﻿using Environment;
-using Microsoft.Graphics.Canvas;
-using SimEarth2020;
 using System;
 using System.Diagnostics;
-using System.Numerics;
 using System.Threading;
 using Viewport2D;
 using Windows.Foundation;
-using Windows.UI;
 
-namespace SimEarth2020App
+namespace SimEarth2020
 {
     public class AppController : IController
     {
@@ -258,7 +254,7 @@ namespace SimEarth2020App
             }
         }
 
-        public void DrawWorld(object arg)
+        public void Draw(object arg)
         {
             if (CurrentWorld != null)
             {
@@ -274,9 +270,7 @@ namespace SimEarth2020App
             }
             else
             {
-                var session = arg as CanvasDrawingSession;
-                session.Clear(Colors.Aqua);
-                session.DrawText("Select New Game to start", new Vector2(200, 200), Colors.Black);
+                UI.DrawNewGameHint(arg);
             }
         }
 

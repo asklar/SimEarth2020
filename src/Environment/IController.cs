@@ -2,7 +2,7 @@
 
 namespace Environment
 {
-    public interface IController
+    public interface IController : IDrawable
     {
         double Speed { get; }
 
@@ -18,7 +18,6 @@ namespace Environment
         void RaisePropertyChanged(string propName);
         void UpdateViewportSize(float width, float height);
         void SetCurrentTool(Tool tool, object value);
-        void DrawWorld(object session);
         void Scroll(DisplacementDirection d);
         World CreateWorld(int size);
     }

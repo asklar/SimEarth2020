@@ -4,7 +4,7 @@ using Windows.Foundation;
 [assembly: InternalsVisibleTo("Tests")]
 namespace Environment
 {
-    public interface IViewport
+    public interface IViewport : IDrawable
     {
         float RenderScale { get; set; }
         float Height { get; set; }
@@ -13,6 +13,5 @@ namespace Environment
         void Scroll(DisplacementDirection dir);
         void StopScrolling();
         Cell GetCellAtPoint(Point pt);
-        void Draw(object arg);
     }
 }

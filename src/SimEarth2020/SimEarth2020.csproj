@@ -121,6 +121,7 @@
     <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="AppController.cs" />
     <Compile Include="CellDisplay.cs" />
     <Compile Include="CellDisplay2D.cs" />
     <Compile Include="IApplicationUI.cs" />

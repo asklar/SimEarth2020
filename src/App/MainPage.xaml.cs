@@ -222,7 +222,7 @@ where TEnum : struct, IConvertible, IComparable, IFormattable
 
         private void WorldCanvas_Draw(ICanvasAnimatedControl sender, CanvasAnimatedDrawEventArgs args)
         {
-            Controller.DrawWorld(args.DrawingSession);
+            Controller.Draw(args.DrawingSession);
         }
 
 
@@ -319,6 +319,13 @@ where TEnum : struct, IConvertible, IComparable, IFormattable
         {
             CanvasDrawingSession session = args as CanvasDrawingSession;
             session.DrawText(v, new Vector2(0, 10), Colors.Black, format);
+        }
+
+        public void DrawNewGameHint(object arg)
+        {
+            var session = arg as CanvasDrawingSession;
+            session.Clear(Colors.Aqua);
+            session.DrawText("Select New Game to start", new Vector2(200, 200), Colors.Black);
         }
 
         private CanvasTextFormat format = new CanvasTextFormat() { FontSize = 8 };

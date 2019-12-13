@@ -1,34 +1,20 @@
-﻿using Environment;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SimEarth2020App;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using Windows.Foundation;
 
 namespace Tests
 {
-    class MockApplicationUI : IApplicationUI
-    {
-        public void DrawDebugText(object session, string v)
-        { }
-
-        public void Inspect(double px, double py, Cell cell)
-        { }
-
-        public void RaisePropertyChanged(string propName)
-        { }
-
-        public void SetStatus(string s)
-        { }
-    }
     [TestClass]
     public class UITests
     {
         MockController2 appController;
-
+        MockApplicationUI appui;
         [TestInitialize]
         public void Setup()
         {
-            appController = new MockController2(new MockApplicationUI());
+            appui = new MockApplicationUI();
+            appController = new MockController2(appui);
             var world = appController.CreateWorld(5);
             world.Terraform();
             appController.CurrentWorld.Tick();
@@ -37,7 +23,7 @@ namespace Tests
         [TestMethod]
         public void ViewportDraw0x0()
         {
-            appController.DrawWorld(null);
+            appController.Draw(null);
             var cells = appController.DrawnCells;
             Assert.AreEqual(4, cells.Count);
 
@@ -50,7 +36,7 @@ namespace Tests
         public void ViewportDraw40x40()
         {
             appController.UpdateViewportSize(40, 40);
-            appController.DrawWorld(null);
+            appController.Draw(null);
             var cells = appController.DrawnCells;
             Assert.AreEqual(16, cells.Count);
             Assert.IsTrue(Same(GenerateSquare(-1, 2), cells));
@@ -61,10 +47,15 @@ namespace Tests
         {
             appController.UpdateViewportSize(40, 40);
             appController.Scaling = 50f;
-            appController.DrawWorld(null);
+            appController.Draw(null);
             var cells = appController.DrawnCells;
             Assert.AreEqual(36, cells.Count); // -1 to 4
             Assert.IsTrue(Same(GenerateSquare(-1, 4), cells));
+            var m = Regex.Match(appui.DebugText, @"(?<fps>\d+(\.\d+)) fps");
+            Assert.IsTrue(m.Success);
+            float fps = float.Parse(m.Groups["fps"].Value);
+            Assert.IsTrue(fps > 150f); // we're not doing any actual drawing, we should be fast
+            
         }
         private Point[] GenerateSquare(int v1, int v2)
         {

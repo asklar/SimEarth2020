@@ -130,6 +130,7 @@
     <Compile Include="FoodSources.cs" />
     <Compile Include="ICellDisplay.cs" />
     <Compile Include="IController.cs" />
+    <Compile Include="IDrawable.cs" />
     <Compile Include="IViewport.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TechTool.cs" />

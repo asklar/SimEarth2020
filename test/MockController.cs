@@ -44,9 +44,8 @@ namespace Tests
             return new Viewport(CurrentWorld);
         }
 
-        public void DrawWorld(object session)
-        {
-        }
+        public void Draw(object session)
+        { }
 
         public ICellDisplay GetCellDisplay(Cell cell)
         {
