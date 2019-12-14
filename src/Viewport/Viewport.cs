@@ -67,6 +67,7 @@ namespace Viewport2D
         }
         public void Draw(object arg)
         {
+            Clear(arg);
             DrawProc((cellDisplay, renderX, renderY) =>
             {
                 cellDisplay.DrawBackground(arg, renderX, renderY, CellSize);

@@ -5,10 +5,10 @@ namespace Tests
 {
     class MockApplicationUI : IApplicationUI
     {
-        public string DebugText { get; set; }
-        public void DrawDebugText(object session, string v)
+        public float FPS { get; set; }
+        public void DebugNotifyFPS(object session, float fps)
         {
-            DebugText = v;
+            FPS = fps;
         }
 
         public void DrawNewGameHint(object session)

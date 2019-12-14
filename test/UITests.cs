@@ -51,12 +51,10 @@ namespace Tests
             var cells = appController.DrawnCells;
             Assert.AreEqual(36, cells.Count, $"Expected 36 cells but got {cells.Count}"); // -1 to 4
             Assert.IsTrue(Same(GenerateSquare(-1, 4), cells), "Cell elements aren't as expected");
-            var m = Regex.Match(appui.DebugText, @"(?<fps>\d+(\.\d+)|∞) fps");
-            Assert.IsTrue(m.Success, $"Couldn't find fps debug text. DebugText = {appui.DebugText}");
-            float fps = float.Parse(m.Groups["fps"].Value);
+
+            float fps = appui.FPS;
             const float minFPS = 150f;
             Assert.IsTrue(fps >= minFPS, $"fps = {fps} should be >{minFPS}"); // we're not doing any actual drawing, we should be fast
-
         }
         private Point[] GenerateSquare(int v1, int v2)
         {

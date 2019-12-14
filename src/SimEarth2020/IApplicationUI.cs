@@ -7,7 +7,7 @@ namespace SimEarth2020
         void RaisePropertyChanged(string propName);
         void Inspect(double px, double py, Cell cell);
         void SetStatus(string s);
-        void DrawDebugText(object session, string v);
+        void DebugNotifyFPS(object session, float fps);
         void DrawNewGameHint(object session);
     }
 }

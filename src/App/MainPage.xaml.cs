@@ -319,10 +319,10 @@ where TEnum : struct, IConvertible, IComparable, IFormattable
             });
         }
 
-        public void DrawDebugText(object args, string v)
+        public void DebugNotifyFPS(object args, float fps)
         {
             CanvasDrawingSession session = args as CanvasDrawingSession;
-            session.DrawText(v, new Vector2(0, 10), Colors.Black, format);
+            session.DrawText($"Draw [{(Controller.Scaling/100f):N2}x] {fps:N1} fps", new Vector2(0, 10), Colors.Black, format);
         }
 
         public void DrawNewGameHint(object arg)
