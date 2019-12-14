@@ -16,7 +16,7 @@ namespace SimEarth2020
         }
 
         public void RaisePropertyChanged(string propName) { UI.RaisePropertyChanged(propName); }
-        public double Speed { get { return 1e4; } }
+        public Speed Speed { get; set; } = Speed.Fast;
         private int currentToolCost;
         public int CurrentToolCost
         {
@@ -150,7 +150,7 @@ namespace SimEarth2020
         {
             get;
             set;
-        } = false;
+        } = true;
 
         public void UpdateViewportSize(float width, float height)
         {
@@ -263,7 +263,7 @@ namespace SimEarth2020
 
         public void Draw(object arg)
         {
-            if (CurrentWorld != null)
+            if (CurrentWorld != null && CurrentWorld.IsInited)
             {
                 Stopwatch s = Stopwatch.StartNew();
                 var viewport = CurrentWorld.Viewport as IViewport;

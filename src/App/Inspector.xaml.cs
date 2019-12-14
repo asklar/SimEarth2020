@@ -22,9 +22,16 @@ namespace SimEarth2020App
             if (cell.Animal != null)
             {
                 AnimalKind.Text = cell.Animal.Kind.ToString();
-                Population.Text = $"Pop: {cell.Animal.Population} HP {cell.Animal.TotalHP}";
+                Population.Text = $"Pop: {cell.Animal.Population}\nL {cell.Animal.Location}";
                 FoodSources.Text = cell.Animal.Stats.FoodSources.ToString();
             }
+            else
+            {
+                AnimalKind.Text = "";
+                Population.Text = "";
+                FoodSources.Text = "";
+            }
+            this.InvalidateArrange();
         }
     }
 }

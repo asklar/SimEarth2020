@@ -7,6 +7,7 @@ using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Numerics;
+using Windows.System;
 using Windows.UI;
 using Windows.UI.Core;
 using Windows.UI.Xaml;
@@ -30,52 +31,109 @@ namespace SimEarth2020App
         public double Scaling { get => Controller.Scaling; set { Controller.Scaling = (float)value; } }
         public void RaisePropertyChanged(string propName)
         {
-            if (propName == "Scaling")
+            Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
             {
-                ScaleControl.Value = Controller.Scaling;
-                ScalePct.Text = $"{Controller.Scaling} %";
-            }
-            else if (propName == "TerrainUpDownString")
-            {
-                TerrainUpDown.Content = TerrainUpDownString;
-            }
-            else if (propName == "CostString")
-            {
-                CostTextBlock.Text = CostString;
-            }
-            else if (propName == "CurrentToolString")
-            {
-                CurrentlySelectedToolTextBlock.Text = Controller.CurrentToolString;
-            }
-            else if (propName == "Energy")
-            {
-                Budget.Text = (Controller.CurrentWorld != null ? Controller.CurrentWorld.Energy : 0).ToString();
-            }
-            else if (propName == "TitleString")
-            {
-                TitleTextBlock.Text = Controller.TitleString;
-            }
-            PropertyChanged(this, new PropertyChangedEventArgs(propName));
+                if (propName == "Scaling")
+                {
+                    ScaleControl.Value = Controller.Scaling;
+                    ScalePct.Text = $"{Controller.Scaling} %";
+                }
+                else if (propName == "TerrainUpDownString")
+                {
+                    TerrainUpDown.Content = TerrainUpDownString;
+                }
+                else if (propName == "CostString")
+                {
+                    CostTextBlock.Text = CostString;
+                }
+                else if (propName == "CurrentToolString")
+                {
+                    CurrentlySelectedToolTextBlock.Text = Controller.CurrentToolString;
+                }
+                else if (propName == "Energy")
+                {
+                    Budget.Text = (Controller.CurrentWorld != null ? Controller.CurrentWorld.Energy : 0).ToString();
+                }
+                else if (propName == "TitleString")
+                {
+                    TitleTextBlock.Text = Controller.TitleString;
+                }
+                PropertyChanged(this, new PropertyChangedEventArgs(propName));
+            });
         }
 
         public MainPage()
         {
             Controller = new AppController(this);
-
             InitializeComponent();
-            this.DataContext = this;
+            DataContext = this;
+            speedConverter.AppController = Controller;
             Unloaded += (_, _1) => { };
-            this.WorldCanvas.LayoutUpdated += (s, a) =>
+            WorldCanvas.LayoutUpdated += (s, a) =>
             {
                 Controller.UpdateViewportSize((float)WorldCanvas.RenderSize.Width, (float)WorldCanvas.RenderSize.Height);
             };
+            SetControlsEnabled(ToolsAndControls, false);
+        }
 
+        private void SetControlsEnabled(UIElement e, bool v)
+        {
+            if (e is Panel)
+            {
+                foreach (var c in (e as Panel).Children)
+                {
+                    SetControlsEnabled(c, v);
+                }
+            }
+            else if (e is Control)
+            {
+                (e as Control).IsEnabled = v;
+            }
+        }
+
+        private void WorldCanvas_KeyDown(object sender, KeyRoutedEventArgs args)
+        {
+            switch (args.Key)
+            {
+                case VirtualKey.Left:
+                    Controller.Scroll(DisplacementDirection.Left);
+                    args.Handled = true;
+                    break;
+                case VirtualKey.Right:
+                    Controller.Scroll(DisplacementDirection.Right);
+                    args.Handled = true;
+                    break;
+                case VirtualKey.Up:
+                    Controller.Scroll(DisplacementDirection.Up);
+                    args.Handled = true;
+                    break;
+                case VirtualKey.Down:
+                    Controller.Scroll(DisplacementDirection.Down);
+                    args.Handled = true;
+                    break;
+                case VirtualKey.Space:
+                    {
+                        Speed newSpeed = lastSpeed;
+                        lastSpeed = Controller.Speed;
+                        Controller.Speed = newSpeed;
+                    }
+                    args.Handled = true;
+                    break;
+            }
+        }
+
+        private Speed lastSpeed = Speed.Paused;
+
+        protected override void OnKeyUp(KeyRoutedEventArgs e)
+        {
+            Controller.Scroll(DisplacementDirection.None);
+            base.OnKeyUp(e);
         }
 
 
         private void Add_Click(object sender, RoutedEventArgs e)
         {
-            ClearToggleButtonsExcept(sender as ToggleButton);
+            ClearToggleExcept(sender as ToggleButton);
             EnsurePopupPanelButtons<AnimalKind>(Animals, Tool.Add);
             EnsurePopupPanelButtons<TechTool>(TechTools, Tool.Add);
         }
@@ -88,7 +146,7 @@ namespace SimEarth2020App
             }
         }
 
-        private void ClearToggleButtonsExcept(ToggleButton toggleButton)
+        private void ClearToggleExcept(ToggleButton toggleButton)
         {
             Panel p = toggleButton.Parent as Panel;
             foreach (UIElement u in p.Children)
@@ -102,7 +160,22 @@ namespace SimEarth2020App
                     }
                 }
             }
+        }
 
+        private void ClearToggleExcept(ToggleMenuFlyoutItem toggle)
+        {
+            var p = speedMenu;  // toggle.Parent as MenuFlyoutSubItem; // this doesn't work
+            foreach (var u in p.Items)
+            {
+                if (u is ToggleMenuFlyoutItem)
+                {
+                    var b = u as ToggleMenuFlyoutItem;
+                    if (b != toggle)
+                    {
+                        b.IsChecked = false;
+                    }
+                }
+            }
         }
 
 
@@ -115,7 +188,10 @@ namespace SimEarth2020App
             }
         }
 
-
+        public bool IsPaused()
+        {
+            return Controller.Speed == 0;
+        }
 
         private void TerrainUpDown_Click(object sender, RoutedEventArgs e)
         {
@@ -138,7 +214,7 @@ namespace SimEarth2020App
 
         private void Inspect_Click(object sender, RoutedEventArgs e)
         {
-            Controller.SetCurrentTool(Tool.Inspect, null);
+            Controller.SetCurrentTool(((ToggleButton)sender).IsChecked.Value ? Tool.Inspect : Tool.None, null);
         }
 
         private void Terraform_Click(object sender, RoutedEventArgs e)
@@ -215,6 +291,7 @@ where TEnum : struct, IConvertible, IComparable, IFormattable
         {
             var world = GetNewWorld();
             StartNewGame(world);
+            SetControlsEnabled(ToolsAndControls, true);
         }
 
         public void StartNewGame(World world)
@@ -222,6 +299,7 @@ where TEnum : struct, IConvertible, IComparable, IFormattable
             Controller.UpdateViewportSize((float)WorldCanvas.RenderSize.Width, (float)WorldCanvas.RenderSize.Height);
             Controller.Scaling = 33f;
             world.Terraform();
+            WorldCanvas.Focus(FocusState.Programmatic);
         }
 
         private void WorldCanvas_Draw(ICanvasAnimatedControl sender, CanvasAnimatedDrawEventArgs args)
@@ -229,16 +307,21 @@ where TEnum : struct, IConvertible, IComparable, IFormattable
             Controller.Draw(args.DrawingSession);
         }
 
-
         private void WorldCanvas_Update(ICanvasAnimatedControl sender, CanvasAnimatedUpdateEventArgs args)
         {
-            Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
+            if (!IsPaused())
             {
-                Controller.CurrentWorld?.Tick();
-                lfg?.Update();
-            }).AsTask().Wait();
-        }
+                if (Controller.CurrentWorld != null && Controller.CurrentWorld.IsInited)
+                {
+                    Controller.CurrentWorld.Tick();
+                }
 
+                Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
+                    {
+                        lfg?.Update();
+                    });
+            }
+        }
 
         LifeFormBarGraph lfg;
         private void LifeFormBiomeGraph_Click(object sender, RoutedEventArgs e)
@@ -293,6 +376,7 @@ where TEnum : struct, IConvertible, IComparable, IFormattable
         {
             var pt = e.GetCurrentPoint(WorldCanvas).Position;
             Controller.Click(pt);
+            WorldCanvas.Focus(FocusState.Programmatic);
         }
 
         private void WorldCanvas_PointerExited(object sender, PointerRoutedEventArgs e)
@@ -302,9 +386,9 @@ where TEnum : struct, IConvertible, IComparable, IFormattable
 
         public void Inspect(double px, double py, Cell cell)
         {
-            //Point o = WorldCanvas.TransformToVisual(this).TransformPoint(new Point());
-            InspectPopup.HorizontalOffset = px;// cell.Display.X;
-            InspectPopup.VerticalOffset = py;// WorldScrollViewer.ActualOffset.Y + cell.Display.Y;
+            cell = Controller.CurrentWorld.CorrectCellForAnimalMicroMovement(px, py);
+            InspectPopup.HorizontalOffset = px;
+            InspectPopup.VerticalOffset = py;
             Inspector.Set(cell);
             InspectPopup.IsOpen = true;
         }
@@ -322,7 +406,7 @@ where TEnum : struct, IConvertible, IComparable, IFormattable
         public void DebugNotifyFPS(object args, float fps)
         {
             CanvasDrawingSession session = args as CanvasDrawingSession;
-            session.DrawText($"Draw [{(Controller.Scaling/100f):N2}x] {fps:N1} fps", new Vector2(0, 10), Colors.Black, format);
+            session.DrawText($"Draw [{(Controller.Scaling / 100f):N2}x] {fps:N1} fps", new Vector2(0, 10), Colors.Black, format);
         }
 
         public void DrawNewGameHint(object arg)
@@ -334,5 +418,19 @@ where TEnum : struct, IConvertible, IComparable, IFormattable
 
         private CanvasTextFormat format = new CanvasTextFormat() { FontSize = 8 };
 
+        private void WorldCanvas_PointerReleased(object sender, PointerRoutedEventArgs e)
+        {
+            WorldCanvas.Focus(FocusState.Programmatic);
+            e.Handled = true;
+        }
+
+        private void SetSpeed(object sender, RoutedEventArgs e)
+        {
+            var i = sender as ToggleMenuFlyoutItem;
+            ClearToggleExcept(i);
+            Controller.Speed = Enum.Parse<Speed>(i.Text);
+        }
+
     }
+
 }

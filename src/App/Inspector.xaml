@@ -36,7 +36,7 @@
                 <TextBlock x:Name="FoodSources"/>
             </StackPanel>
         </StackPanel>
-        <StackPanel Margin=".5" Background="YellowGreen" Name="InspectCivilization" Grid.Column="2" HorizontalAlignment="Stretch">
+        <StackPanel Margin=".5" Background="YellowGreen" Name="InspectCivilization" Grid.Column="2" HorizontalAlignment="Stretch" Visibility="Collapsed">
             <StackPanel Margin="3" HorizontalAlignment="Stretch">
                 <StackPanel Background="Olive">
                     <TextBlock Text="Sentient" FontSize="16" Foreground="White" TextAlignment="Center"/>

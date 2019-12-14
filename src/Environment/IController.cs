@@ -2,9 +2,16 @@
 
 namespace Environment
 {
+    public enum Speed
+    {
+        Paused,
+        Slow,
+        Medium,
+        Fast
+    }
     public interface IController : IDrawable
     {
-        double Speed { get; }
+        Speed Speed { get; set; }
 
         void Click(Point pt);
         ICellDisplay GetCellDisplay(Cell cell);

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using Windows.Foundation;
 
 [assembly: InternalsVisibleTo("Tests")]
 namespace Environment
@@ -28,8 +29,10 @@ namespace Environment
                     Cells[x, y] = cell;
                 }
             }
+            IsInited = true;
         }
 
+        public bool IsInited { get; private set; } = false;
         public IViewport Viewport { get; private set; }
 
         private double age;
@@ -79,7 +82,7 @@ namespace Environment
         public void Tick()
         {
             var start = DateTime.Now;
-            Age += Controller.Speed;
+            Age += YearsFromSpeed(Controller.Speed);
             Energy = Math.Min(MaxEnergy, Energy + GetProducedEnergy());
             CurrentCensus = new Census();
             if (CensusHistory.Count == MaxCensusHistory)
@@ -95,6 +98,17 @@ namespace Environment
             var duration = DateTime.Now - start;
             //Controller.SetStatus($"Tick {tick}: {duration.TotalMilliseconds} ms");
             tick++;
+        }
+
+        private double YearsFromSpeed(Speed speed)
+        {
+            switch (speed)
+            {
+                case Speed.Slow: return 1e2;
+                case Speed.Medium: return 1e3;
+                case Speed.Fast: return 1e4;
+            }
+            throw new InvalidOperationException();
         }
 
         private void TickTerrain(Cell cell)
@@ -250,5 +264,35 @@ namespace Environment
         }
 
         public Cell[,] Cells { get; private set; }
+
+        public Cell CorrectCellForAnimalMicroMovement(double px, double py)
+        {
+            Cell minCell = null;
+            float minDist = float.PositiveInfinity;
+            for (double y = py - Viewport.CellSize; y < py + Viewport.CellSize; y++)
+            {
+                for (double x = px - Viewport.CellSize; x < px + Viewport.CellSize; x++)
+                {
+                    Cell c = Viewport.GetCellAtPoint(new Point(x, y));
+                    Point animalPos = c.Animal != null ? c.Animal.Location : new Point();
+                    float effectiveX = (float)(c.X + animalPos.X);
+                    float effectiveY = (float)(c.Y + animalPos.Y);
+                    // Now convert the effective X, Y into screen coordinates
+                    Point screenCoords = Viewport.CellIndexToScreenCoords(effectiveX, effectiveY);
+                    float newDist = DistanceSq(px, py, screenCoords);
+                    if (newDist < minDist)
+                    {
+                        minCell = c;
+                        minDist = newDist;
+                    }
+                }
+            }
+            return minCell;
+        }
+
+        private static float DistanceSq(double px, double py, Point screenCoords)
+        {
+            return (float)(Math.Pow(px - screenCoords.X, 2) + Math.Pow(py - screenCoords.Y, 2));
+        }
     }
 }

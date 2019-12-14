@@ -9,10 +9,11 @@ namespace Environment
         float RenderScale { get; set; }
         float Height { get; set; }
         float Width { get; set; }
+        float CellSize { get; }
 
         void Scroll(DisplacementDirection dir);
-        void StopScrolling();
         Cell GetCellAtPoint(Point pt);
         void Clear(object arg);
+        Point CellIndexToScreenCoords(float effectiveX, float effectiveY);
     }
 }

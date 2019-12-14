@@ -8,7 +8,7 @@ namespace Tests
 {
     public class MockController : IController
     {
-        public double Speed => 1;
+        public Speed Speed { get; set; } = Speed.Fast;
 
         public World CurrentWorld { get; set; }
         public float Scaling { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
@@ -76,6 +76,5 @@ namespace Tests
         {
             throw new NotImplementedException();
         }
-
     }
 }

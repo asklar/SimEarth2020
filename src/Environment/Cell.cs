@@ -146,7 +146,11 @@ namespace Environment
                     else
                     {
                         Animal.Location.X *= (1 - Animal.Stats.Speed);
-                        Animal.Location.Y *= (1 - animal.Stats.Speed);
+                        Animal.Location.Y *= (1 - Animal.Stats.Speed);
+                        if (Math.Abs(Animal.Location.X) > 1)
+                        {
+                            // Something went wrong
+                        }
                         Util.Debug($"animal micromove to {Animal.Location}");
                     }
                 }
@@ -169,7 +173,58 @@ namespace Environment
 
                     if (World.Controller.MicroMoveEnabled)
                     {
-                        Animal.Location = new Point(X - x, Y - y);
+                        var dx = X - x;
+                        var dy = Y - y;
+                        if (dx > 1)
+                        {
+                            // This happens when the animal is crossing the zero longitude line
+                            if (dx == World.Size - 1)
+                            {
+                                dx = -1;
+                            }
+                            else
+                            {
+                                // Something went wrong
+                            }
+                        }
+                        else if (dx < -1)
+                        {
+                            if (dx == 1 - World.Size)
+                            {
+                                dx = 1;
+                            }
+                            else
+                            {
+                                // Something went wrong
+                            }
+                        }
+                        if (dy > 1)
+                        {
+                            if (dy == World.Size - 1)
+                            {
+                                dy = -1;
+                            }
+                            else
+                            {
+                                // Something went wrong;
+                            }
+                        }
+                        else if (dy < -1)
+                        {
+                            if (dy == 1 - World.Size)
+                            {
+                                dy = 1;
+                            }
+                            else
+                            {
+                                // Something went wrong;
+                            }
+                        }
+                        if (Math.Abs(dx) > 1 || Math.Abs(dy) > 1)
+                        {
+                            // Something went wrong
+                        }
+                        Animal.Location = new Point(dx, dy);
                         Util.Debug($"start animal move {X},{Y} -> {x},{y} Rel loc: {Animal.Location}");
                     }
                     // Debug.WriteLine($"Moving {Animal.Kind}(LT {Animal.LastTick}) from ({X}, {Y}) to ({x}, {y})");

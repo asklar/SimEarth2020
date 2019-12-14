@@ -6,6 +6,9 @@
       xmlns:local="using:SimEarth2020App"
       xmlns:win2d="using:Microsoft.Graphics.Canvas.UI.Xaml"
       mc:Ignorable="d">
+    <Page.Resources>
+        <local:SpeedToMenuConverter x:Key="SpeedToMenuConverter" x:Name="speedConverter"/>
+    </Page.Resources>
     <StackPanel x:Name="Container">
         <MenuBar>
             <MenuBarItem Title="File">
@@ -46,11 +49,14 @@
                 <MenuFlyoutItem Text="Technologies"/>
             </MenuBarItem>
             <MenuBarItem Title="Options">
-                <MenuFlyoutSubItem Text="Speed">
-                    <MenuFlyoutItem Text="Pause"/>
-                    <MenuFlyoutItem Text="Slow"/>
-                    <MenuFlyoutItem Text="Medium"/>
-                    <MenuFlyoutItem Text="Fast"/>
+                <MenuBarItem.KeyboardAccelerators>
+                    <KeyboardAccelerator Modifiers="Menu" Key="O"/>
+                </MenuBarItem.KeyboardAccelerators>
+                <MenuFlyoutSubItem Text="Speed" x:Name="speedMenu">
+                    <ToggleMenuFlyoutItem Text="Paused" Click="SetSpeed" IsChecked="{Binding Converter={StaticResource SpeedToMenuConverter},ConverterParameter=Paused, Mode=OneWay}" />
+                    <ToggleMenuFlyoutItem Text="Slow" Click="SetSpeed" IsChecked="{Binding Converter={StaticResource SpeedToMenuConverter},ConverterParameter=Slow, Mode=OneWay}"/>
+                    <ToggleMenuFlyoutItem Text="Medium" Click="SetSpeed" IsChecked="{Binding Converter={StaticResource SpeedToMenuConverter},ConverterParameter=Medium, Mode=OneWay}"/>
+                    <ToggleMenuFlyoutItem Text="Fast" Click="SetSpeed" IsChecked="{Binding Converter={StaticResource SpeedToMenuConverter},ConverterParameter=Fast, Mode=OneWay}"/>
                 </MenuFlyoutSubItem>
                 <ToggleMenuFlyoutItem Text="Micromoves" IsChecked="{Binding Path=Controller.MicroMoveEnabled, Mode=TwoWay}" />
             </MenuBarItem>
@@ -67,7 +73,7 @@
                 <RowDefinition Height="12"/>
             </Grid.RowDefinitions>
             <TextBlock x:Name="TitleTextBlock" Grid.Row="0" Grid.ColumnSpan="2" HorizontalAlignment="Center" />
-            <StackPanel x:Name="MenuBar" Grid.Row="1" Grid.Column="0" Width="80" HorizontalAlignment="Left" Background="AliceBlue">
+            <StackPanel x:Name="ToolsAndControls" Grid.Row="1" Grid.Column="0" Width="80" HorizontalAlignment="Left" Background="AliceBlue">
                 <Grid Width="80" HorizontalAlignment="Left" Name="Tools">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition/>
@@ -101,7 +107,7 @@
                            VerticalOffset="0" IsLightDismissEnabled="True">
                         <StackPanel Background="YellowGreen" Name="Terraform" />
                     </Popup>
-                    <ToggleButton Content="Inspect" Grid.Row="2" Grid.Column="1" Click="Inspect_Click" x:Name="InspectBtn" />
+                    <ToggleButton Content="Inspect" Grid.Row="2" Grid.Column="1" Click="Inspect_Click" IsThreeState="False" x:Name="InspectBtn" />
                     <Popup IsOpen="{Binding IsChecked,ElementName=Inspect,Mode=TwoWay}"
                            HorizontalOffset="0" IsLightDismissEnabled="True" x:Name="InspectPopup">
                         <Popup.Child>
@@ -134,7 +140,15 @@
                     <TextBlock x:Name="Budget" TextAlignment="Center" Width="80"/>
                 </StackPanel>
             </StackPanel>
-            <win2d:CanvasAnimatedControl Grid.Row="1" Grid.Column="1" x:Name="WorldCanvas" Draw="WorldCanvas_Draw" Update="WorldCanvas_Update" Background="Black" PointerPressed="WorldCanvas_PointerPressed" PointerExited="WorldCanvas_PointerExited" PointerMoved="WorldCanvas_PointerMoved"/>
+            <win2d:CanvasAnimatedControl Grid.Row="1" Grid.Column="1" x:Name="WorldCanvas" 
+                                         Draw="WorldCanvas_Draw" Update="WorldCanvas_Update" 
+                                         Background="Black" 
+                                         PointerPressed="WorldCanvas_PointerPressed" 
+                                         PointerReleased="WorldCanvas_PointerReleased"
+                                         PointerExited="WorldCanvas_PointerExited" 
+                                         PointerMoved="WorldCanvas_PointerMoved" 
+                                         KeyDown="WorldCanvas_KeyDown"
+                                         IsTabStop="True" IsTapEnabled="True" />
             <TextBlock Grid.ColumnSpan="2" Grid.Row="2" Name="Status" HorizontalAlignment="Stretch" FontSize="8"/>
         </Grid>
     </StackPanel>

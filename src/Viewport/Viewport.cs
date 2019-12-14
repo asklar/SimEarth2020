@@ -88,12 +88,6 @@ namespace Viewport2D
 
         private CanvasTextFormat format = new CanvasTextFormat() { FontSize = 8 };
 
-        public void StopScrolling()
-        {
-            lastDisplacementDirection = DisplacementDirection.None;
-            displacementTimer = null;
-        }
-
         Vector2 viewportStart = new Vector2();
         public void Scroll(DisplacementDirection dir)
         {
@@ -156,6 +150,13 @@ namespace Viewport2D
                 }
             }
         }
-    }
 
+        public Point CellIndexToScreenCoords(float effectiveX, float effectiveY)
+        {
+            return new Point(
+                (effectiveX * CellSize - viewportStart.X + Width) % Width,
+                (effectiveY * CellSize - viewportStart.Y + Height) % Height
+                );
+        }
+    }
 }
