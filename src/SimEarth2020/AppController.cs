@@ -273,7 +273,6 @@ namespace SimEarth2020
                 float t = stats.GetValue();
                 float fps = 1000f / t;
                 UI.DrawDebugText(arg, $"Draw [{viewport.RenderScale:N2}x] {fps:N1} fps ");
-
             }
             else
             {
