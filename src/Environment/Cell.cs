@@ -21,6 +21,7 @@ namespace Environment
             {
                 terrain = value;
                 Display.UpdateTerrain();
+                terrain.InvalidateCache();
             }
         }
 
@@ -49,11 +50,18 @@ namespace Environment
             get => y;
             set
             {
-                y = value; 
-                cached_CosLatitude = null; 
-                cached_latitude = null;
+                y = value;
+                InvalidateCache();
             }
         }
+
+        private void InvalidateCache()
+        {
+            cached_CosLatitude = null;
+            cached_latitude = null;
+            Terrain?.InvalidateCache();
+        }
+
         private World world;
         private AnimalPack animal;
         private Terrain terrain;

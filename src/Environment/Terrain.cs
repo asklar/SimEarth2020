@@ -66,6 +66,7 @@ namespace Environment
             }
             return cached_temperature.Value;
         }
+        internal void InvalidateCache() { cached_temperature = null; }
 
         public void Tick(float CosLatitude)
         {
@@ -104,7 +105,7 @@ namespace Environment
         {
             // Debug.WriteLine($"{Kind} has become {kind}");
             Stats = TerrainStats.Get(kind);
-            cached_temperature = null;
+            InvalidateCache();
         }
     }
 }
