@@ -45,7 +45,17 @@ namespace Environment
         public TechTool TechTool { get; set; }
         public long Elevation { get; set; }
         public int X { get; set; }
-        public int Y { get; set; }
+        private int y;
+        public int Y
+        {
+            get => y;
+            set
+            {
+                y = value; 
+                cached_CosLatitude = null; 
+                cached_latitude = null;
+            }
+        }
         private World world;
         private AnimalPack animal;
         private Terrain terrain;
