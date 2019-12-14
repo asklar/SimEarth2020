@@ -25,16 +25,16 @@ namespace Environment
             // return 6.1094 * Math.Exp((17.625 * T.Celsius) / (T.Celsius + 243.04));
         }
 
-        private double GetVaporPressure(Angle latitude)
+        private double GetVaporPressure(float CosLatitude)
         {
-            return Stats.Humidity * GetMaxSaturationPressure(Stats.GetTemperature(latitude));
+            return Stats.Humidity * GetMaxSaturationPressure(Stats.GetTemperature(CosLatitude));
         }
 
-        private double GetEvaporationRate(Angle latitude)
+        private double GetEvaporationRate(float CosLatitude)
         {
-            Temperature T = Stats.GetTemperature(latitude);
+            Temperature T = Stats.GetTemperature(CosLatitude);
             // https://en.wikipedia.org/wiki/Penman_equation
-            double m_mmHg = 5336 / Math.Pow(T.Kelvin, 2.0) * Math.Exp(21.07 - 5336 / T.Kelvin);
+            double m_mmHg = 5336 / T.Kelvin.Squared() * Math.Exp(21.07 - 5336 / T.Kelvin);
             double m_kPa = m_mmHg / 7.50062;
 
             double Rn = 4;
@@ -57,11 +57,11 @@ namespace Environment
             return E_mm_per_day;
         }
 
-        public void Tick(Angle lat)
+        public void Tick(float CosLatitude)
         {
-            int growth = (int)(Stats.GrowthPerTurn * Math.Cos(lat.Radians));
+            int growth = (int)(Stats.GrowthPerTurn * CosLatitude);
             RemainingFood = Math.Min(RemainingFood + growth, Stats.MaxFood);
-            double temperature = Stats.GetTemperature(lat).Celsius;
+            double temperature = Stats.GetTemperature(CosLatitude).Celsius;
             // TODO: State machine for terrain to become a different terrain 
             // based on temperature, proximity to water, etc.
             if (temperature <= 0 &&

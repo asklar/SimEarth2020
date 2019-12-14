@@ -292,7 +292,8 @@ namespace Environment
 
         private static float DistanceSq(double px, double py, Point screenCoords)
         {
-            return (float)(Math.Pow(px - screenCoords.X, 2) + Math.Pow(py - screenCoords.Y, 2));
+            return (float)((px - screenCoords.X).Squared() + (py - screenCoords.Y).Squared());
         }
+
     }
 }

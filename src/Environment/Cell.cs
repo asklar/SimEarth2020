@@ -28,7 +28,7 @@ namespace Environment
 
         public Temperature Temperature
         {
-            get => Terrain.Stats.GetTemperature(Lat);
+            get => Terrain.Stats.GetTemperature(CosLatitude);
         }
 
 
@@ -50,18 +50,41 @@ namespace Environment
         private AnimalPack animal;
         private Terrain terrain;
 
+        private float? cached_CosLatitude = null;
+        private Angle? cached_latitude = null;
+        private Angle? cached_longitude = null;
         public Angle Lat
         {
             get
             {
-                return new Angle(ToSpherical()[1]);
+                if (cached_latitude == null)
+                {
+                    cached_latitude = new Angle(ToSpherical()[1]);
+                }
+                return cached_latitude.Value;
             }
         }
         public Angle Long
         {
             get
             {
-                return new Angle(ToSpherical()[2]);
+                if (cached_longitude == null)
+                {
+                    cached_longitude = new Angle(ToSpherical()[2]);
+                }
+                return cached_longitude.Value;
+            }
+        }
+
+        public float CosLatitude
+        {
+            get
+            {
+                if (cached_CosLatitude == null)
+                {
+                    cached_CosLatitude = (float)Math.Cos(Lat.Radians);
+                }
+                return cached_CosLatitude.Value;
             }
         }
 
@@ -138,7 +161,7 @@ namespace Environment
                 if (World.Controller.MicroMoveEnabled)
                 {
                     // we are already moving
-                    if (Math.Pow(Animal.Location.X, 2) + Math.Pow(Animal.Location.Y, 2) < .1f)
+                    if (Animal.Location.X.Squared() + Animal.Location.Y.Squared() < .02f)
                     {
                         Animal.Location = ZeroPoint;
                         Util.Debug("animal arrived");
@@ -282,7 +305,7 @@ namespace Environment
         public void TickTerrain()
         {
             TerrainKind old = Terrain.Kind;
-            Terrain.Tick(Lat);
+            Terrain.Tick(CosLatitude);
             if (old != Terrain.Kind)
             {
                 // The terrain has changed, update its display

@@ -11,7 +11,7 @@ namespace Environment
         public double Emissivity { get; set; }
 
         public double Humidity { get; set; }
-        public Temperature GetTemperature(Angle latitude)
+        public Temperature GetTemperature(float CosLatitude)
         {
             // Intensity radiated = Intensity absorbed
             // Iabs = (1-α) . L / 4piD^2 . cos(Latitude)
@@ -19,13 +19,14 @@ namespace Environment
             const double StefanBoltzmannSigma = 5.670374e-8;
             const double S = World.SolarLuminosity / (World.RotationalFactor * Math.PI * World.DistanceToTheSun * World.DistanceToTheSun);
             double AverageAlbedo = 0.3;
-            double Trad = Math.Pow(
-                (1 - AverageAlbedo) * S / 4.0 * Math.Cos(latitude.Radians)
-                / Emissivity / StefanBoltzmannSigma,
-                1 / 4.0);
+
+            double Trad4 = (1 - AverageAlbedo) * S / 4.0 * CosLatitude
+                / Emissivity / StefanBoltzmannSigma;
+            double Trad = Math.Sqrt(Math.Sqrt(Trad4));
             // The factor of 2^(1/4) below comes from 
             // https://en.wikipedia.org/wiki/Idealized_greenhouse_model
-            return Temperature.FromKelvin(Trad * Math.Pow(2, 1 / 4.0));
+            const double FourthRootOf2 = 1.1892071150027210667174999705605;
+            return Temperature.FromKelvin(Trad * FourthRootOf2);
         }
         private static TerrainStats[] stats;
         static TerrainStats()

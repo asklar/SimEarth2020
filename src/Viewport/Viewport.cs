@@ -20,7 +20,8 @@ namespace Viewport2D
         public const float CellSize_0 = 20;
         public float ScaledMapWidth => CellSize * N;
         DisplacementDirection lastDisplacementDirection = DisplacementDirection.None;
-        private const float maxDisplacementSpeed = 30;
+        private const float maxDisplacementSpeed = 8f;
+        private const float MaxTime = 1600;
         private const float initialDisplacementSpeed = 1f;
         private Stopwatch displacementTimer = new Stopwatch();
         public float CellSize => (RenderScale * CellSize_0);
@@ -59,7 +60,7 @@ namespace Viewport2D
                     // When scrolling fast things can get out of range quickly, so correct for 16x
                     int xindex = (x + 16 * N) % N;
                     int yindex = (y + 16 * N) % N;
-                    var cellDisplay = world.Cells[xindex, yindex].Display as ICellDisplay2D;
+                    var cellDisplay = (ICellDisplay2D)(world.Cells[xindex, yindex].Display);
                     action(cellDisplay, renderX, renderY);
                 }
             }
@@ -119,14 +120,13 @@ namespace Viewport2D
             viewportStart.Y = (viewportStart.Y + ScaledMapWidth) % ScaledMapWidth;
         }
 
-        private IEasing Easing = new LinearEasing();
+        private IEasing Easing = new CosEasing();
         private float GetSpeed()
         {
             displacementTimer.Stop();
             long ms = displacementTimer.ElapsedMilliseconds;
             displacementTimer.Start();
-            const float MaxTime = 600;
-            return initialDisplacementSpeed + (maxDisplacementSpeed - initialDisplacementSpeed) * Easing.GetValue((float)ms / MaxTime);
+            return initialDisplacementSpeed + (maxDisplacementSpeed * CellSize - initialDisplacementSpeed) * Easing.GetValue((float)ms / MaxTime);
         }
 
         public Cell GetCellAtPoint(Point pt)

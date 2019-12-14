@@ -74,6 +74,7 @@ namespace SimEarth2020App
                 Controller.UpdateViewportSize((float)WorldCanvas.RenderSize.Width, (float)WorldCanvas.RenderSize.Height);
             };
             SetControlsEnabled(ToolsAndControls, false);
+            // WorldCanvas.TargetElapsedTime = new TimeSpan(0, 0, 0, 0, 1000 / 10);
         }
 
         private void SetControlsEnabled(UIElement e, bool v)

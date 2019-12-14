@@ -16,6 +16,15 @@ namespace Environment
             return Math.Sqrt(-2 * Math.Log(u1)) * Math.Cos(2 * Math.PI * u2);
         }
 
+        public static double Squared(this double v)
+        {
+            return v * v;
+        }
+        public static float Squared(this float v)
+        {
+            return v * v;
+        }
+
         public static IEnumerable<T> Where<T>(this T[,] ts, Func<T, bool> predicate)
         {
             for (int x = 0; x < ts.GetLength(0); x++)

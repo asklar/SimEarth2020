@@ -12,7 +12,7 @@ namespace SimEarth2020
         public AppController(IApplicationUI npc)
         {
             UI = npc;
-            scrollTimer = new Timer(scrollProc, null, 0, 10);
+            scrollTimer = new Timer(scrollProc, null, 0, 17);
         }
 
         public void RaisePropertyChanged(string propName) { UI.RaisePropertyChanged(propName); }
