@@ -13,5 +13,6 @@ namespace Environment
         void Scroll(DisplacementDirection dir);
         void StopScrolling();
         Cell GetCellAtPoint(Point pt);
+        void Clear(object arg);
     }
 }

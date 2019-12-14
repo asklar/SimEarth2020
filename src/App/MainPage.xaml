@@ -52,6 +52,7 @@
                     <MenuFlyoutItem Text="Medium"/>
                     <MenuFlyoutItem Text="Fast"/>
                 </MenuFlyoutSubItem>
+                <ToggleMenuFlyoutItem Text="Micromoves" IsChecked="{Binding Path=Controller.MicroMoveEnabled, Mode=TwoWay}" />
             </MenuBarItem>
 
         </MenuBar>
@@ -65,7 +66,7 @@
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="12"/>
             </Grid.RowDefinitions>
-            <TextBlock Grid.Row="0" Grid.ColumnSpan="2" HorizontalAlignment="Center" Text="{Binding TitleString}" />
+            <TextBlock x:Name="TitleTextBlock" Grid.Row="0" Grid.ColumnSpan="2" HorizontalAlignment="Center" />
             <StackPanel x:Name="MenuBar" Grid.Row="1" Grid.Column="0" Width="80" HorizontalAlignment="Left" Background="AliceBlue">
                 <Grid Width="80" HorizontalAlignment="Left" Name="Tools">
                     <Grid.ColumnDefinitions>

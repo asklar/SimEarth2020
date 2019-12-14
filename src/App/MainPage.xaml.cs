@@ -23,7 +23,7 @@ namespace SimEarth2020App
     /// </summary>
     public partial class MainPage : Page, IApplicationUI
     {
-        private IController Controller { get; set; }
+        public IController Controller { get; set; }
         // INotifyPropertyChanged
         public event PropertyChangedEventHandler PropertyChanged = delegate { };
 
@@ -50,6 +50,10 @@ namespace SimEarth2020App
             else if (propName == "Energy")
             {
                 Budget.Text = (Controller.CurrentWorld != null ? Controller.CurrentWorld.Energy : 0).ToString();
+            }
+            else if (propName == "TitleString")
+            {
+                TitleTextBlock.Text = Controller.TitleString;
             }
             PropertyChanged(this, new PropertyChangedEventArgs(propName));
         }
@@ -163,7 +167,7 @@ where TEnum : struct, IConvertible, IComparable, IFormattable
                     panel.Children.Add(new Rectangle() { Width = 20, Height = 20, Fill = new SolidColorBrush(Colors.BlueViolet), HorizontalAlignment = HorizontalAlignment.Left });
                     TextBlock text = new TextBlock()
                     {
-                        Text = Util.MakeEnumName(Enum.GetName(typeof(TEnum), value)),
+                        Text = Environment.Util.MakeEnumName(Enum.GetName(typeof(TEnum), value)),
                         TextAlignment = TextAlignment.Right,
                         VerticalAlignment = VerticalAlignment.Top,
                         HorizontalAlignment = HorizontalAlignment.Right,
@@ -180,7 +184,7 @@ where TEnum : struct, IConvertible, IComparable, IFormattable
                     button.Click += (sender, args) =>
                     {
                         Controller.SetCurrentTool(tool, value);
-                        var p = Util.FindParent<Popup>(panel);
+                        var p = SimEarth2020.Util.FindParent<Popup>(panel);
                         if (p != null)
                         {
                             p.IsOpen = false;
@@ -308,10 +312,10 @@ where TEnum : struct, IConvertible, IComparable, IFormattable
 
         public void SetStatus(string s)
         {
-            Debug.WriteLine(s);
+            Environment.Util.Debug(s);
             Dispatcher.RunIdleAsync((_) =>
             {
-                Status.Text = s;
+                Status.Text = Controller.CurrentWorld.CurrentTick + " " + s;
             });
         }
 

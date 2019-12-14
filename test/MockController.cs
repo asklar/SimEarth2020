@@ -17,6 +17,10 @@ namespace Tests
 
         public string CurrentToolString => throw new NotImplementedException();
 
+        public string TitleString => throw new NotImplementedException();
+
+        public bool MicroMoveEnabled => false;
+
         public event PropertyChangedEventHandler PropertyChanged;
 
         public void AddToGrid(ICellDisplay display)
@@ -72,5 +76,6 @@ namespace Tests
         {
             throw new NotImplementedException();
         }
+
     }
 }

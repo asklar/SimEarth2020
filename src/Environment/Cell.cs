@@ -1,4 +1,5 @@
 ﻿using System;
+using Windows.Foundation;
 
 namespace Environment
 {
@@ -129,26 +130,53 @@ namespace Environment
             TickAnimal_Move();
         }
 
+        private static readonly Point ZeroPoint = new Point(0, 0);
         private void TickAnimal_Move()
         {
-            var (x, y) = GetMoveCandidate(World.CurrentTick);
-            if (World.Cells[x, y].Animal != null)
+            if (Animal.Location != ZeroPoint)
             {
-                // already occupied, don't move for now
-                // TODO: Implement animal packs eating each other
+                if (World.Controller.MicroMoveEnabled)
+                {
+                    // we are already moving
+                    if (Math.Pow(Animal.Location.X, 2) + Math.Pow(Animal.Location.Y, 2) < .1f)
+                    {
+                        Animal.Location = ZeroPoint;
+                        Util.Debug("animal arrived");
+                    }
+                    else
+                    {
+                        Animal.Location.X *= (1 - Animal.Stats.Speed);
+                        Animal.Location.Y *= (1 - animal.Stats.Speed);
+                        Util.Debug($"animal micromove to {Animal.Location}");
+                    }
+                }
             }
             else
             {
-                if (World.Cells[x, y].Terrain.Kind == TerrainKind.Ocean && !Animal.Stats.CanSwim)
-                    return;
+                var (x, y) = GetMoveCandidate(World.CurrentTick);
+                if (World.Cells[x, y].Animal != null)
+                {
+                    // already occupied, don't move for now
+                    // TODO: Implement animal packs eating each other
+                }
+                else
+                {
+                    if (World.Cells[x, y].Terrain.Kind == TerrainKind.Ocean && !Animal.Stats.CanSwim)
+                        return;
 
-                if (World.Cells[x, y].Terrain.Kind != TerrainKind.Ocean && !Animal.Stats.CanWalk)
-                    return;
+                    if (World.Cells[x, y].Terrain.Kind != TerrainKind.Ocean && !Animal.Stats.CanWalk)
+                        return;
 
-                // Debug.WriteLine($"Moving {Animal.Kind}(LT {Animal.LastTick}) from ({X}, {Y}) to ({x}, {y})");
-                World.Cells[x, y].Animal = Animal;
-                World.Cells[x, y].Animal.LastTick = World.CurrentTick;
-                Animal = null;
+                    if (World.Controller.MicroMoveEnabled)
+                    {
+                        Animal.Location = new Point(X - x, Y - y);
+                        Util.Debug($"start animal move {X},{Y} -> {x},{y} Rel loc: {Animal.Location}");
+                    }
+                    // Debug.WriteLine($"Moving {Animal.Kind}(LT {Animal.LastTick}) from ({X}, {Y}) to ({x}, {y})");
+                    World.Cells[x, y].Animal = Animal;
+                    World.Cells[x, y].Animal.LastTick = World.CurrentTick;
+                    Animal = null;
+                }
             }
         }
 
@@ -165,8 +193,7 @@ namespace Environment
         {
             if (Animal.Population <= 0)
             {
-                /// TODO
-                /// World.Controller.SetStatus($"{Animal.Kind} ({LatLongString}) died of famine");
+                World.Controller.SetStatus($"{Animal.Kind} ({LatLongString}) died of famine");
                 Animal = null;
                 return;
             }

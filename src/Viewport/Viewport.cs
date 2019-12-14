@@ -1,6 +1,7 @@
 ﻿using Environment;
 using Microsoft.Graphics.Canvas;
 using Microsoft.Graphics.Canvas.Text;
+using System;
 using System.Diagnostics;
 using System.Numerics;
 using Windows.Foundation;
@@ -16,13 +17,13 @@ namespace Viewport2D
         public Viewport(World world) { this.world = world; }
         public float RenderScale { get; set; } = 1;
         private int N { get => world.Size; }
-        public const float cellSize = 20;
+        public const float CellSize_0 = 20;
         public float ScaledMapWidth => CellSize * N;
         DisplacementDirection lastDisplacementDirection = DisplacementDirection.None;
         private const float maxDisplacementSpeed = 30;
         private const float initialDisplacementSpeed = 1f;
         private Stopwatch displacementTimer = new Stopwatch();
-        public float CellSize => (RenderScale * cellSize);
+        public float CellSize => (RenderScale * CellSize_0);
 
 
         public float X { get => viewportStart.X; }
@@ -31,7 +32,7 @@ namespace Viewport2D
         public float Width { get; set; }
         public float Height { get; set; }
 
-        public void Draw(object arg)
+        public void Clear(object arg)
         {
             var session = arg as CanvasDrawingSession;
             if (session != null)
@@ -39,9 +40,11 @@ namespace Viewport2D
                 session.Clear(Colors.CornflowerBlue);
                 session.Antialiasing = CanvasAntialiasing.Aliased;
             }
+        }
+
+        private void DrawProc(Action<ICellDisplay2D, float, float> action)
+        {
             var x0 = viewportStart.X / CellSize;
-
-
             var y0 = viewportStart.Y / CellSize;
 
             float xf = (viewportStart.X + Width + CellSize - 1) / CellSize;
@@ -57,9 +60,24 @@ namespace Viewport2D
                     int xindex = (x + 16 * N) % N;
                     int yindex = (y + 16 * N) % N;
                     var cellDisplay = world.Cells[xindex, yindex].Display as ICellDisplay2D;
-                    cellDisplay.Draw(arg, renderX, renderY, CellSize);
+                    action(cellDisplay, renderX, renderY);
                 }
             }
+
+        }
+        public void Draw(object arg)
+        {
+            DrawProc((cellDisplay, renderX, renderY) =>
+            {
+                cellDisplay.DrawBackground(arg, renderX, renderY, CellSize);
+            });
+
+            DrawProc((cellDisplay, renderX, renderY) =>
+            {
+                cellDisplay.DrawForeground(arg, renderX, renderY, CellSize);
+            });
+
+            var session = arg as CanvasDrawingSession;
             if (session != null)
             {
                 session.FillRectangle(new Rect(0, 0, 100, 20), Colors.BlanchedAlmond);

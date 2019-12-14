@@ -14,6 +14,7 @@ namespace SimEarth2020
             UI = npc;
             scrollTimer = new Timer(scrollProc, null, 0, 10);
         }
+
         public void RaisePropertyChanged(string propName) { UI.RaisePropertyChanged(propName); }
         public double Speed { get { return 1e4; } }
         private int currentToolCost;
@@ -144,6 +145,12 @@ namespace SimEarth2020
         }
 
         public IApplicationUI UI { get; set; }
+
+        public bool MicroMoveEnabled
+        {
+            get;
+            set;
+        } = false;
 
         public void UpdateViewportSize(float width, float height)
         {
@@ -277,6 +284,11 @@ namespace SimEarth2020
         public World CreateWorld(int size)
         {
             return new World(this, size);
+        }
+
+        public void SetStatus(string v)
+        {
+            UI.SetStatus(v);
         }
     }
 }

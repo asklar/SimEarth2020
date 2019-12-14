@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Environment
 {
-    static class Util
+    public static class Util
     {
         /// <summary>
         /// Returns a Gaussian value with mean 0 and stddev 1
@@ -28,6 +28,39 @@ namespace Environment
                     }
                 }
             }
+        }
+
+
+        public static bool DebugOn { get; set; } = false;
+        public static void Debug(string s)
+        {
+            if (DebugOn)
+            {
+                System.Diagnostics.Debug.WriteLine(s);
+            }
+        }
+
+        public static string MakeEnumName(string v)
+        {
+            string r = "";
+            bool lastWasUppercase = true;
+            foreach (var c in v)
+            {
+                if (char.IsUpper(c) && !lastWasUppercase)
+                {
+                    r += ' ';
+                }
+                if (char.IsDigit(c))
+                {
+                    r += (char)(c - '0' + '₀');
+                }
+                else
+                {
+                    r += c;
+                }
+                lastWasUppercase = char.IsUpper(c);
+            }
+            return r;
         }
     }
 }

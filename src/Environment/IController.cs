@@ -13,6 +13,8 @@ namespace Environment
         bool TerrainUpDownMode { get; set; }
         int CurrentToolCost { get; set; }
         string CurrentToolString { get; }
+        string TitleString { get; }
+        bool MicroMoveEnabled { get; }
 
         IViewport CreateViewport();
         void RaisePropertyChanged(string propName);
@@ -20,5 +22,6 @@ namespace Environment
         void SetCurrentTool(Tool tool, object value);
         void Scroll(DisplacementDirection d);
         World CreateWorld(int size);
+        void SetStatus(string v);
     }
 }

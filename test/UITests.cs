@@ -54,8 +54,8 @@ namespace Tests
             var m = Regex.Match(appui.DebugText, @"(?<fps>\d+(\.\d+)) fps");
             Assert.IsTrue(m.Success);
             float fps = float.Parse(m.Groups["fps"].Value);
-            Assert.IsTrue(fps > 150f); // we're not doing any actual drawing, we should be fast
-            
+            Assert.IsTrue(fps >= 60f); // we're not doing any actual drawing, we should be fast
+
         }
         private Point[] GenerateSquare(int v1, int v2)
         {

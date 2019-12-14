@@ -13,15 +13,20 @@ namespace SimEarth2020
     {
         public CellDisplay2D(Cell cell) : base(cell) { }
 
-        public void Draw(object arg, float x, float y, float cellSize)
+        public void DrawBackground(object arg, float x, float y, float cellSize)
         {
             var s = arg as CanvasDrawingSession;
             s.FillRectangle(new Rect(x * cellSize, y * cellSize, cellSize, cellSize),
                 Background);
+        }
 
+        public void DrawForeground(object arg, float x, float y, float cellSize)
+        {
+            var s = arg as CanvasDrawingSession;
             if (cell.Animal != null)
             {
-                s.DrawText($"{Text}", x * cellSize, y * cellSize, Foreground, format);
+                Environment.Util.Debug($"Draw cell: {cell.X},{cell.Y}   rel loc: {cell.Animal.Location}");
+                s.DrawText($"{Text}", (x + (float)cell.Animal.Location.X) * cellSize, (y + (float)cell.Animal.Location.Y) * cellSize, Foreground, format);
             }
             // DEBUG
             // s.DrawText($"{cell.X}", x * cellSize, y * cellSize, Foreground, format);

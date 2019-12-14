@@ -14,10 +14,13 @@ namespace Tests
         public int X { get; set; }
         public int Y { get; set; }
 
-        public void Draw(object s, float x, float y, float cellSize)
+        public void DrawBackground(object s, float x, float y, float cellSize)
         {
             mockController2.NotifyDraw(x, y);
         }
+
+        public void DrawForeground(object s, float x, float y, float cellSize)
+        { }
 
         public void UpdateAnimal()
         { }

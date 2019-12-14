@@ -19,7 +19,7 @@
                 FoodPerTurn = 45,
                 MaxFood = 100,
                 ActionThreshold = 45,
-                Speed = 0.4,
+                Speed = 0.02,
                 FoodSources = new FoodSources(new AnimalKind[] { AnimalKind.Prokaryote, AnimalKind.Eukaryote }) { Sun = true, Vegetation = true },
                 CanSwim = true,
                 CanWalk = false

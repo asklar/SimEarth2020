@@ -48,7 +48,7 @@ namespace Environment
             set
             {
                 age = value;
-                // Controller.RaisePropertyChanged("TitleString");
+                Controller.RaisePropertyChanged("TitleString");
             }
         }
         public double Radius { get; set; }
@@ -134,7 +134,7 @@ namespace Environment
             // Swamps
             CoverWithTerrain(2, 1.5, .3, TerrainKind.Swamp, Angle.FromDegrees(60));
             stopwatch.Stop();
-            Debug.WriteLine($"Terraform: {stopwatch.ElapsedMilliseconds} ms");
+            Util.Debug($"Terraform: {stopwatch.ElapsedMilliseconds} ms");
         }
 
         /// <summary>
