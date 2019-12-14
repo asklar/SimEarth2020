@@ -49,12 +49,12 @@ namespace Tests
             appController.Scaling = 50f;
             appController.Draw(null);
             var cells = appController.DrawnCells;
-            Assert.AreEqual(36, cells.Count); // -1 to 4
-            Assert.IsTrue(Same(GenerateSquare(-1, 4), cells));
+            Assert.AreEqual(36, cells.Count, $"Expected 36 cells but got {cells.Count}"); // -1 to 4
+            Assert.IsTrue(Same(GenerateSquare(-1, 4), cells), "Cell elements aren't as expected");
             var m = Regex.Match(appui.DebugText, @"(?<fps>\d+(\.\d+)) fps");
-            Assert.IsTrue(m.Success);
+            Assert.IsTrue(m.Success, "Couldn't find fps debug text");
             float fps = float.Parse(m.Groups["fps"].Value);
-            Assert.IsTrue(fps >= 60f); // we're not doing any actual drawing, we should be fast
+            Assert.IsTrue(fps >= 60f, $"fps = {fps} should be >60"); // we're not doing any actual drawing, we should be fast
 
         }
         private Point[] GenerateSquare(int v1, int v2)
