@@ -38,7 +38,7 @@ namespace SimEarth2020
                 float ry = (y + (float)cell.Animal.Location.Y) * cellSize;
                 if (cell.Animal.Kind == AnimalKind.Prokaryote)
                 {
-                    var c = new Vector2(rx, ry);
+                    var c = new Vector2(rx + cellSize / 2, ry + cellSize / 2);
                     s.FillCircle(c, cellSize / 2, new CanvasSolidColorBrush(s, Colors.LightGreen));
                     s.FillCircle(c, cellSize / 5, new CanvasSolidColorBrush(s, Colors.Green));
                 }

@@ -65,7 +65,7 @@ namespace Environment
                 index++;
                 age /= 1000;
             }
-            return $"{age} {prefixes[index]}";
+            return $"{age:N2} {prefixes[index]}";
         }
         public override sealed string ToString()
         {
@@ -275,8 +275,8 @@ namespace Environment
                 {
                     Cell c = Viewport.GetCellAtPoint(new Point(x, y));
                     Point animalPos = c.Animal != null ? c.Animal.Location : new Point();
-                    float effectiveX = (float)(c.X + animalPos.X);
-                    float effectiveY = (float)(c.Y + animalPos.Y);
+                    float effectiveX = (float)(c.X + .5f + animalPos.X);
+                    float effectiveY = (float)(c.Y + .5f + animalPos.Y);
                     // Now convert the effective X, Y into screen coordinates
                     Point screenCoords = Viewport.CellIndexToScreenCoords(effectiveX, effectiveY);
                     float newDist = DistanceSq(px, py, screenCoords);
