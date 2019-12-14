@@ -19,7 +19,7 @@ namespace Environment
             const double StefanBoltzmannSigma = 5.670374e-8;
             const double S = World.SolarLuminosity / (World.RotationalFactor * Math.PI * World.DistanceToTheSun * World.DistanceToTheSun);
             double AverageAlbedo = 0.3;
-
+            /// TODO: We should use the terrain's Albedo instead of average, but the resulting temps are unrealistic
             double Trad4 = (1 - AverageAlbedo) * S / 4.0 * CosLatitude
                 / Emissivity / StefanBoltzmannSigma;
             double Trad = Math.Sqrt(Math.Sqrt(Trad4));

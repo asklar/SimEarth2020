@@ -57,11 +57,21 @@ namespace Environment
             return E_mm_per_day;
         }
 
+        Temperature? cached_temperature = null;
+        public Temperature GetTemperature(float CosLatitude)
+        {
+            if (cached_temperature == null)
+            {
+                cached_temperature = Stats.GetTemperature(CosLatitude);
+            }
+            return cached_temperature.Value;
+        }
+
         public void Tick(float CosLatitude)
         {
             int growth = (int)(Stats.GrowthPerTurn * CosLatitude);
             RemainingFood = Math.Min(RemainingFood + growth, Stats.MaxFood);
-            double temperature = Stats.GetTemperature(CosLatitude).Celsius;
+            double temperature = GetTemperature(CosLatitude).Celsius; 
             // TODO: State machine for terrain to become a different terrain 
             // based on temperature, proximity to water, etc.
             if (temperature <= 0 &&
@@ -94,6 +104,7 @@ namespace Environment
         {
             // Debug.WriteLine($"{Kind} has become {kind}");
             Stats = TerrainStats.Get(kind);
+            cached_temperature = null;
         }
     }
 }

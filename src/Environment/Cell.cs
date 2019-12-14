@@ -28,10 +28,8 @@ namespace Environment
 
         public Temperature Temperature
         {
-            get => Terrain.Stats.GetTemperature(CosLatitude);
+            get => Terrain.GetTemperature(CosLatitude);
         }
-
-
 
         public AnimalPack Animal
         {
