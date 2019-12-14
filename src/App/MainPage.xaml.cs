@@ -7,6 +7,7 @@ using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Numerics;
+using System.Threading;
 using Windows.System;
 using Windows.UI;
 using Windows.UI.Core;
@@ -114,20 +115,37 @@ namespace SimEarth2020App
                     break;
                 case VirtualKey.Space:
                     {
-                        Speed newSpeed = lastSpeed;
-                        lastSpeed = Controller.Speed;
-                        Controller.Speed = newSpeed;
+                        ToggleSpeed_Pause();
                     }
                     args.Handled = true;
                     break;
             }
         }
 
+        private void ToggleSpeed_Pause()
+        {
+            Speed newSpeed = lastSpeed;
+            lastSpeed = Controller.Speed;
+            Controller.Speed = newSpeed;
+        }
+
         private Speed lastSpeed = Speed.Paused;
 
         protected override void OnKeyUp(KeyRoutedEventArgs e)
         {
-            Controller.Scroll(DisplacementDirection.None);
+            switch (e.Key)
+            {
+                case VirtualKey.Up:
+                case VirtualKey.Down:
+                case VirtualKey.Left:
+                case VirtualKey.Right:
+                    Controller.CurrentWorld.Viewport.EasingIsPositive = false;
+                    Thread.Sleep(150);
+                    Controller.Scroll(DisplacementDirection.None);
+                    Controller.CurrentWorld.Viewport.EasingIsPositive = true;
+                    e.Handled = true;
+                    break;
+            }
             base.OnKeyUp(e);
         }
 

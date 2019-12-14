@@ -10,6 +10,7 @@ namespace Environment
         float Height { get; set; }
         float Width { get; set; }
         float CellSize { get; }
+        bool EasingIsPositive { get; set; }
 
         void Scroll(DisplacementDirection dir);
         Cell GetCellAtPoint(Point pt);

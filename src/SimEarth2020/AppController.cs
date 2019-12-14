@@ -65,7 +65,20 @@ namespace SimEarth2020
         {
             if (displacementDirection != d)
             {
+                ToggleSpeed_Scroll();
+
                 displacementDirection = d;
+            }
+        }
+
+        private Speed scrollSpeed = Speed.Paused;
+        private void ToggleSpeed_Scroll()
+        {
+            if (Speed != Speed.Paused ^ scrollSpeed != Speed.Paused)
+            {
+                Speed newSpeed = scrollSpeed;
+                scrollSpeed = Speed;
+                Speed = newSpeed;
             }
         }
 

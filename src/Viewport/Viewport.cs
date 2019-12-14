@@ -20,9 +20,9 @@ namespace Viewport2D
         public const float CellSize_0 = 20;
         public float ScaledMapWidth => CellSize * N;
         DisplacementDirection lastDisplacementDirection = DisplacementDirection.None;
-        private const float maxDisplacementSpeed = 8f;
-        private const float MaxTime = 1600;
-        private const float initialDisplacementSpeed = 1f;
+        private const float maxDisplacementSpeed = 20f;
+        private const float initialDisplacementSpeed = 2f;
+        private const float MaxTime = 900;
         private Stopwatch displacementTimer = new Stopwatch();
         public float CellSize => (RenderScale * CellSize_0);
 
@@ -95,7 +95,7 @@ namespace Viewport2D
             float displacementSpeed;
             if (lastDisplacementDirection == dir)
             {
-                displacementSpeed = GetSpeed();
+                displacementSpeed = GetSpeed() * (EasingIsPositive ? 1 : -.1f);
             }
             else
             {
@@ -120,13 +120,23 @@ namespace Viewport2D
             viewportStart.Y = (viewportStart.Y + ScaledMapWidth) % ScaledMapWidth;
         }
 
+        public bool EasingIsPositive
+        {
+            get => easingIsPositive;
+            set
+            {
+                easingIsPositive = value; displacementTimer = Stopwatch.StartNew();
+            }
+        }
         private IEasing Easing = new CosEasing();
+        private bool easingIsPositive = true;
+
         private float GetSpeed()
         {
             displacementTimer.Stop();
             long ms = displacementTimer.ElapsedMilliseconds;
             displacementTimer.Start();
-            return initialDisplacementSpeed + (maxDisplacementSpeed * CellSize - initialDisplacementSpeed) * Easing.GetValue((float)ms / MaxTime);
+            return CellSize * (initialDisplacementSpeed + (maxDisplacementSpeed - initialDisplacementSpeed) * Easing.GetValue((float)ms / MaxTime));
         }
 
         public Cell GetCellAtPoint(Point pt)
