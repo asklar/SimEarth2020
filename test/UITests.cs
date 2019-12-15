@@ -24,10 +24,10 @@ namespace Tests
         {
             appController.Draw(null);
             var cells = appController.DrawnCells;
-            Assert.AreEqual(4, cells.Count);
+            Assert.AreEqual(1, cells.Count);
 
-            var ps = GenerateSquare(-1, 0);
-            Assert.AreEqual(4, ps.Length);
+            var ps = GenerateSquare(0, 0);
+            Assert.AreEqual(1, ps.Length);
             Assert.IsTrue(Same(ps, cells));
         }
 
@@ -37,8 +37,8 @@ namespace Tests
             appController.UpdateViewportSize(40, 40);
             appController.Draw(null);
             var cells = appController.DrawnCells;
-            Assert.AreEqual(16, cells.Count);
-            Assert.IsTrue(Same(GenerateSquare(-1, 2), cells));
+            Assert.AreEqual(9, cells.Count);
+            Assert.IsTrue(Same(GenerateSquare(0, 2), cells));
         }
 
         [TestMethod]
@@ -48,8 +48,8 @@ namespace Tests
             appController.Scaling = 50f;
             appController.Draw(null);
             var cells = appController.DrawnCells;
-            Assert.AreEqual(36, cells.Count, $"Expected 36 cells but got {cells.Count}"); // -1 to 4
-            Assert.IsTrue(Same(GenerateSquare(-1, 4), cells), "Cell elements aren't as expected");
+            Assert.AreEqual(25, cells.Count, $"Expected 36 cells but got {cells.Count}"); // 0 to 4
+            Assert.IsTrue(Same(GenerateSquare(0, 4), cells), "Cell elements aren't as expected");
 
             float fps = appui.FPS;
             const float minFPS = 150f;

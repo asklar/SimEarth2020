@@ -9,6 +9,14 @@ namespace Environment
         Medium,
         Fast
     }
+
+    public enum TerrainUpDownMode
+    {
+        None,
+        Up,
+        Down
+    }
+
     public interface IController : IDrawable
     {
         Speed Speed { get; set; }
@@ -16,12 +24,13 @@ namespace Environment
         void Click(Point pt);
         ICellDisplay GetCellDisplay(Cell cell);
         World CurrentWorld { get; set; }
-        float Scaling { get; set; }
-        bool TerrainUpDownMode { get; set; }
+        double Scaling { get; set; }
+        TerrainUpDownMode TerrainUpDownMode { get; set; }
         int CurrentToolCost { get; set; }
-        string CurrentToolString { get; }
-        string TitleString { get; }
         bool MicroMoveEnabled { get; }
+        bool Blitting { get; set; }
+        Tool CurrentTool { get; set; }
+        object ToolOption { get; set; }
 
         IViewport CreateViewport();
         void RaisePropertyChanged(string propName);

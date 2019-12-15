@@ -184,8 +184,7 @@ namespace Environment
                     }
                     else
                     {
-                        Animal.Location.X *= (1 - Animal.Stats.Speed);
-                        Animal.Location.Y *= (1 - Animal.Stats.Speed);
+                        Animal.MicroMove(World.Random.GetNormal() / 4);
                         if (Math.Abs(Animal.Location.X) > 1)
                         {
                             // Something went wrong

@@ -1,12 +1,9 @@
 ﻿using Environment;
 using Microsoft.Graphics.Canvas;
-using Microsoft.Graphics.Canvas.Brushes;
 using Microsoft.Graphics.Canvas.Text;
 using System;
-using System.Numerics;
 using Viewport2D;
 using Windows.Foundation;
-using Windows.UI;
 
 // The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 
@@ -36,11 +33,10 @@ namespace SimEarth2020
                 }
                 float rx = (x + (float)cell.Animal.Location.X) * cellSize;
                 float ry = (y + (float)cell.Animal.Location.Y) * cellSize;
-                if (cell.Animal.Kind == AnimalKind.Prokaryote)
+                CanvasBitmap b = BitmapManager.Animals[(int)cell.Animal.Kind];
+                if (b != null)
                 {
-                    var c = new Vector2(rx + cellSize / 2, ry + cellSize / 2);
-                    s.FillCircle(c, cellSize / 2, new CanvasSolidColorBrush(s, Colors.LightGreen));
-                    s.FillCircle(c, cellSize / 5, new CanvasSolidColorBrush(s, Colors.Green));
+                    s.DrawImage(b, new Rect(rx, ry, cellSize, cellSize));
                 }
                 else
                 {

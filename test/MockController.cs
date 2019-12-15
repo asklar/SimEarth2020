@@ -11,15 +11,15 @@ namespace Tests
         public Speed Speed { get; set; } = Speed.Fast;
 
         public World CurrentWorld { get; set; }
-        public float Scaling { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        public bool TerrainUpDownMode { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public double Scaling { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public int CurrentToolCost { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
-        public string CurrentToolString => throw new NotImplementedException();
-
-        public string TitleString => throw new NotImplementedException();
-
         public bool MicroMoveEnabled => false;
+
+        public bool Blitting { get; set; }
+        public TerrainUpDownMode TerrainUpDownMode { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public Tool CurrentTool { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public object ToolOption { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
         public event PropertyChangedEventHandler PropertyChanged;
 

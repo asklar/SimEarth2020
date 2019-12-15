@@ -8,6 +8,12 @@
       mc:Ignorable="d">
     <Page.Resources>
         <local:SpeedToMenuConverter x:Key="SpeedToMenuConverter" x:Name="speedConverter"/>
+        <local:TerrainUpDownToCheckedConverter x:Key="TerrainUpDownToCheckedConverter" />
+        <local:IsNullToBoolConverter x:Key="IsNullToBoolConvert" />
+        <local:IsNonNullToBoolConverter x:Key="IsNonNullToBoolConvert" />
+        <local:ScalingPctConverter x:Key="ScalingPctConverter"/>
+        <local:TerrainUpDownModeToStringConverter x:Key="TerrainUpDownModeToStringConverter"/>
+        <local:ToStringConverter x:Key="ToStringConverter"/>
     </Page.Resources>
     <StackPanel x:Name="Container">
         <MenuBar>
@@ -22,9 +28,13 @@
                 </MenuFlyoutItem>
                 <MenuFlyoutItem Text="Load"/>
                 <MenuFlyoutItem Text="Save"/>
-                <MenuFlyoutItem Text="Exit"/>
+                <MenuFlyoutItem Text="Exit">
+                    <MenuFlyoutItem.KeyboardAccelerators>
+                        <KeyboardAccelerator Key="X"/>
+                    </MenuFlyoutItem.KeyboardAccelerators>
+                </MenuFlyoutItem>
             </MenuBarItem>
-            <MenuBarItem Title="Window">
+            <MenuBarItem Title="Window" IsEnabled="{Binding Path=Controller.CurrentWorld,Converter={StaticResource IsNonNullToBoolConvert}}">
                 <MenuBarItem.KeyboardAccelerators>
                     <KeyboardAccelerator Modifiers="Menu" Key="W"/>
                 </MenuBarItem.KeyboardAccelerators>
@@ -36,16 +46,19 @@
                 <MenuFlyoutItem Text="Tutorial"/>
                 <MenuFlyoutItem Text="Glossary"/>
             </MenuBarItem>
-            <MenuBarItem Title="Model">
+            <MenuBarItem Title="Model" IsEnabled="{Binding Path=Controller.CurrentWorld,Converter={StaticResource IsNonNullToBoolConvert}}">
                 <MenuFlyoutItem Text="Geosphere"/>
                 <MenuFlyoutItem Text="Atmosphere"/>
                 <MenuFlyoutItem Text="Biosphere"/>
                 <MenuFlyoutItem Text="Civilization"/>
             </MenuBarItem>
-            <MenuBarItem Title="Graph">
+            <MenuBarItem Title="Graph" IsEnabled="{Binding Path=Controller.CurrentWorld,Converter={StaticResource IsNonNullToBoolConvert}}">
+                <MenuBarItem.KeyboardAccelerators>
+                    <KeyboardAccelerator Key="G" Modifiers="Menu"/>
+                </MenuBarItem.KeyboardAccelerators>
                 <MenuFlyoutItem Text="Air sample"/>
                 <MenuFlyoutItem Text="Biomes"/>
-                <MenuFlyoutItem Text="Life-forms" Click="LifeFormBiomeGraph_Click"/>
+                <MenuFlyoutItem Text="Life-forms" Click="LifeFormBiomeGraph_Click" />
                 <MenuFlyoutItem Text="Technologies"/>
             </MenuBarItem>
             <MenuBarItem Title="Options">
@@ -59,6 +72,7 @@
                     <ToggleMenuFlyoutItem Text="Fast" Click="SetSpeed" IsChecked="{Binding Converter={StaticResource SpeedToMenuConverter},ConverterParameter=Fast, Mode=OneWay}"/>
                 </MenuFlyoutSubItem>
                 <ToggleMenuFlyoutItem Text="Micromoves" IsChecked="{Binding Path=Controller.MicroMoveEnabled, Mode=TwoWay}" />
+                <ToggleMenuFlyoutItem Text="Use blitting" IsChecked="{Binding Path=Controller.Blitting, Mode=TwoWay}" />
             </MenuBarItem>
 
         </MenuBar>
@@ -72,7 +86,9 @@
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="12"/>
             </Grid.RowDefinitions>
-            <TextBlock x:Name="TitleTextBlock" Grid.Row="0" Grid.ColumnSpan="2" HorizontalAlignment="Center" />
+            <Border Background="Beige" Grid.Row="0" Grid.ColumnSpan="2" HorizontalAlignment="Stretch" >
+                <TextBlock Text="{Binding Path=Controller.CurrentWorld,Converter={StaticResource ToStringConverter}}" TextAlignment="Center" />
+            </Border>
             <StackPanel x:Name="ToolsAndControls" Grid.Row="1" Grid.Column="0" Width="80" HorizontalAlignment="Left" Background="AliceBlue">
                 <Grid Width="80" HorizontalAlignment="Left" Name="Tools">
                     <Grid.ColumnDefinitions>
@@ -98,7 +114,7 @@
                             <StackPanel x:Name="TechTools" Grid.Column="1" />
                         </Grid>
                     </Popup>
-                    <ToggleButton Content="{Binding TerrainUpDownString}" Grid.Row="0" Grid.Column="1" Click="TerrainUpDown_Click" IsThreeState="True" IsChecked="{x:Null}" x:Name="TerrainUpDown" HorizontalAlignment="Stretch" VerticalAlignment="Top" />
+                    <ToggleButton Content="{Binding Path=Controller.TerrainUpDownMode,Converter={StaticResource TerrainUpDownModeToStringConverter}}" Grid.Row="0" Grid.Column="1" Click="TerrainUpDown_Click" IsChecked="{Binding Path=Controller.TerrainUpDownMode,Converter={StaticResource TerrainUpDownToCheckedConverter}}" x:Name="TerrainUpDown" HorizontalAlignment="Stretch" VerticalAlignment="Top" />
                     <ToggleButton Content="Disaster" Grid.Row="1" Grid.Column="0" Click="Disaster_Click"/>
                     <ToggleButton Content="Move" Grid.Row="1" Grid.Column="1" Click="Move_Click"/>
                     <ToggleButton x:Name="TerraformButton" Content="Terraform" Grid.Row="2" Grid.Column="0" Click="Terraform_Click"/>
@@ -116,8 +132,10 @@
                     </Popup>
                 </Grid>
                 <StackPanel x:Name="CostPanel" Width="80" HorizontalAlignment="Left">
-                    <TextBlock x:Name="CurrentlySelectedToolTextBlock"/>
-                    <TextBlock x:Name="CostTextBlock" HorizontalAlignment="Center" />
+                    <TextBlock Text="{Binding Path=Controller.CurrentTool,Converter={StaticResource ToStringConverter}}" />
+                    <TextBlock Text="{Binding Path=Controller.ToolOption,Converter={StaticResource ToStringConverter}}" />
+                    <TextBlock Text="{Binding Path=Controller.CurrentToolCost,Converter={StaticResource ToStringConverter},ConverterParameter='🕉 '}"  
+                               HorizontalAlignment="Center" />
                 </StackPanel>
                 <StackPanel x:Name="DisplayPanel" Width="80" HorizontalAlignment="Left">
                     <ToggleButton Content="Oceans" IsChecked="True" HorizontalAlignment="Stretch"/>
@@ -134,14 +152,16 @@
                         <ToggleButton Content="Magma" HorizontalAlignment="Stretch"/>
                     </StackPanel>
                 </StackPanel>
-                <Slider x:Name="ScaleControl" Minimum="1" Maximum="100" Value="{Binding Scaling,Mode=TwoWay}"/>
-                <TextBlock x:Name="ScalePct" Width="80"/>
+                <Slider x:Name="ScaleControl" Minimum="1" Maximum="100" Value="{Binding Path=Controller.Scaling,Mode=TwoWay}"/>
+                <TextBlock x:Name="ScalePct" Width="80" Text="{Binding Path=Controller.Scaling,Converter={StaticResource ScalingPctConverter}}"/>
                 <StackPanel Width="80" HorizontalAlignment="Left">
-                    <TextBlock x:Name="Budget" TextAlignment="Center" Width="80"/>
+                    <TextBlock TextAlignment="Center" Width="80" Text="{Binding Path=Controller.Energy,Converter={StaticResource ToStringConverter}}"/>
                 </StackPanel>
             </StackPanel>
             <win2d:CanvasAnimatedControl Grid.Row="1" Grid.Column="1" x:Name="WorldCanvas" 
-                                         Draw="WorldCanvas_Draw" Update="WorldCanvas_Update" 
+                                         CreateResources="WorldCanvas_CreateResources"
+                                         Draw="WorldCanvas_Draw" 
+                                         Update="WorldCanvas_Update" 
                                          Background="Black" 
                                          PointerPressed="WorldCanvas_PointerPressed" 
                                          PointerReleased="WorldCanvas_PointerReleased"

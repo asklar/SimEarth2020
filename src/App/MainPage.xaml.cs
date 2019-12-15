@@ -1,6 +1,7 @@
 ﻿using Environment;
 using Microsoft.Graphics.Canvas;
 using Microsoft.Graphics.Canvas.Text;
+using Microsoft.Graphics.Canvas.UI;
 using Microsoft.Graphics.Canvas.UI.Xaml;
 using SimEarth2020;
 using System;
@@ -10,13 +11,11 @@ using System.Numerics;
 using System.Threading;
 using Windows.System;
 using Windows.UI;
-using Windows.UI.Core;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
 using Windows.UI.Xaml.Input;
-using Windows.UI.Xaml.Media;
-using Windows.UI.Xaml.Shapes;
+using Windows.UI.Xaml.Media.Imaging;
 
 namespace SimEarth2020App
 {
@@ -26,42 +25,6 @@ namespace SimEarth2020App
     public partial class MainPage : Page, IApplicationUI
     {
         public IController Controller { get; set; }
-        // INotifyPropertyChanged
-        public event PropertyChangedEventHandler PropertyChanged = delegate { };
-
-        public double Scaling { get => Controller.Scaling; set { Controller.Scaling = (float)value; } }
-        public void RaisePropertyChanged(string propName)
-        {
-            Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
-            {
-                if (propName == "Scaling")
-                {
-                    ScaleControl.Value = Controller.Scaling;
-                    ScalePct.Text = $"{Controller.Scaling} %";
-                }
-                else if (propName == "TerrainUpDownString")
-                {
-                    TerrainUpDown.Content = TerrainUpDownString;
-                }
-                else if (propName == "CostString")
-                {
-                    CostTextBlock.Text = CostString;
-                }
-                else if (propName == "CurrentToolString")
-                {
-                    CurrentlySelectedToolTextBlock.Text = Controller.CurrentToolString;
-                }
-                else if (propName == "Energy")
-                {
-                    Budget.Text = (Controller.CurrentWorld != null ? Controller.CurrentWorld.Energy : 0).ToString();
-                }
-                else if (propName == "TitleString")
-                {
-                    TitleTextBlock.Text = Controller.TitleString;
-                }
-                PropertyChanged(this, new PropertyChangedEventArgs(propName));
-            });
-        }
 
         public MainPage()
         {
@@ -119,6 +82,14 @@ namespace SimEarth2020App
                     }
                     args.Handled = true;
                     break;
+                case VirtualKey.PageUp:
+                    Controller.Scaling++;
+                    args.Handled = true;
+                    break;
+                case VirtualKey.PageDown:
+                    Controller.Scaling--;
+                    args.Handled = true;
+                    break;
             }
         }
 
@@ -157,14 +128,6 @@ namespace SimEarth2020App
             EnsurePopupPanelButtons<TechTool>(TechTools, Tool.Add);
         }
 
-        public string CostString
-        {
-            get
-            {
-                return "🕉 " + Controller.CurrentToolCost;
-            }
-        }
-
         private void ClearToggleExcept(ToggleButton toggleButton)
         {
             Panel p = toggleButton.Parent as Panel;
@@ -197,16 +160,6 @@ namespace SimEarth2020App
             }
         }
 
-
-
-        public string TerrainUpDownString
-        {
-            get
-            {
-                return Controller.TerrainUpDownMode ? "⬆" : "⬇";
-            }
-        }
-
         public bool IsPaused()
         {
             return Controller.Speed == 0;
@@ -214,11 +167,17 @@ namespace SimEarth2020App
 
         private void TerrainUpDown_Click(object sender, RoutedEventArgs e)
         {
-            if (TerrainUpDown.IsChecked.HasValue)
+            switch (Controller.TerrainUpDownMode)
             {
-                Controller.TerrainUpDownMode = TerrainUpDown.IsChecked.Value;
-                SetStatus("Terrain " + (Controller.TerrainUpDownMode ? "up" : "down"));
+                case TerrainUpDownMode.None:
+                    Controller.TerrainUpDownMode = TerrainUpDownMode.Up; TerrainUpDown.IsChecked = true; break;
+                case TerrainUpDownMode.Up:
+                    Controller.TerrainUpDownMode = TerrainUpDownMode.Down; TerrainUpDown.IsChecked = true; break;
+                case TerrainUpDownMode.Down:
+                    Controller.TerrainUpDownMode = TerrainUpDownMode.None; TerrainUpDown.IsChecked = false; break;
             }
+            Controller.SetCurrentTool(Tool.TerrainUpDown, Controller.TerrainUpDownMode);
+            SetStatus("Terrain " + (Controller.TerrainUpDownMode.ToString()));
         }
 
         private void Disaster_Click(object sender, RoutedEventArgs e)
@@ -259,10 +218,14 @@ where TEnum : struct, IConvertible, IComparable, IFormattable
                     panel.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
                     panel.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(80) });
                     /// TODO: Use an image for every animal/terrain/tech
-                    panel.Children.Add(new Rectangle() { Width = 20, Height = 20, Fill = new SolidColorBrush(Colors.BlueViolet), HorizontalAlignment = HorizontalAlignment.Left });
+                    string name = Environment.Util.MakeEnumName(Enum.GetName(typeof(TEnum), value));
+
+                    var bm = new BitmapImage() { UriSource = new Uri($"ms-appx:///Assets/{name}.png"), DecodePixelWidth = 20, DecodePixelHeight = 20 };
+                    panel.Children.Add(new Image() { Source = bm, Width = 20, Height = 20 });  // = ImageSource. BitmapManager.Animals[(int)value]);
+                    //new Rectangle() { Width = 20, Height = 20, Fill = new SolidColorBrush(Colors.BlueViolet), HorizontalAlignment = HorizontalAlignment.Left });
                     TextBlock text = new TextBlock()
                     {
-                        Text = Environment.Util.MakeEnumName(Enum.GetName(typeof(TEnum), value)),
+                        Text = name,
                         TextAlignment = TextAlignment.Right,
                         VerticalAlignment = VerticalAlignment.Top,
                         HorizontalAlignment = HorizontalAlignment.Right,
@@ -311,6 +274,7 @@ where TEnum : struct, IConvertible, IComparable, IFormattable
             var world = GetNewWorld();
             StartNewGame(world);
             SetControlsEnabled(ToolsAndControls, true);
+            Controller.CurrentWorld.Viewport.Canvas = WorldCanvas;
         }
 
         public void StartNewGame(World world)
@@ -335,7 +299,7 @@ where TEnum : struct, IConvertible, IComparable, IFormattable
                     Controller.CurrentWorld.Tick();
                 }
 
-                Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
+                RunOnUIThread(() =>
                     {
                         lfg?.Update();
                     });
@@ -413,10 +377,10 @@ where TEnum : struct, IConvertible, IComparable, IFormattable
         }
 
 
-        public void SetStatus(string s)
+        public async void SetStatus(string s)
         {
             Environment.Util.Debug(s);
-            Dispatcher.RunIdleAsync((_) =>
+            await Dispatcher.RunIdleAsync((_) =>
             {
                 Status.Text = Controller.CurrentWorld.CurrentTick + " " + s;
             });
@@ -450,6 +414,14 @@ where TEnum : struct, IConvertible, IComparable, IFormattable
             Controller.Speed = Enum.Parse<Speed>(i.Text);
         }
 
-    }
+        private void WorldCanvas_CreateResources(CanvasAnimatedControl sender, CanvasCreateResourcesEventArgs args)
+        {
+            args.TrackAsyncAction(BitmapManager.CreateResources(sender).AsAsyncAction());
+        }
 
+        public async void RunOnUIThread(Action action)
+        {
+            await Dispatcher.RunIdleAsync((_) => action());
+        }
+    }
 }

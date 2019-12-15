@@ -72,7 +72,7 @@ namespace Environment
         {
             int growth = (int)(Stats.GrowthPerTurn * CosLatitude);
             RemainingFood = Math.Min(RemainingFood + growth, Stats.MaxFood);
-            double temperature = GetTemperature(CosLatitude).Celsius; 
+            double temperature = GetTemperature(CosLatitude).Celsius;
             // TODO: State machine for terrain to become a different terrain 
             // based on temperature, proximity to water, etc.
             if (temperature <= 0 &&

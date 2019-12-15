@@ -39,7 +39,7 @@ namespace Environment
         private int energy;
 
         public IController Controller { get; set; }
-        public string Name { get; set; }
+        public string Name { get => name; set { name = value; Controller.RaisePropertyChanged("CurrentWorld"); } }
 
         public int Size { get; private set; }
         public int Width { get => Size; }
@@ -51,7 +51,7 @@ namespace Environment
             set
             {
                 age = value;
-                Controller.RaisePropertyChanged("TitleString");
+                Controller.RaisePropertyChanged("CurrentWorld");
             }
         }
         public double Radius { get; set; }
@@ -121,6 +121,8 @@ namespace Environment
         }
 
         private Random rand = new Random();
+        private string name;
+
         internal Random Random { get => rand; }
 
         public void Terraform()

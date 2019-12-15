@@ -1,13 +1,15 @@
 ﻿using Environment;
 using System;
+using System.ComponentModel;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Viewport2D;
 using Windows.Foundation;
 
 namespace SimEarth2020
 {
-    public class AppController : IController
+    public class AppController : IController, INotifyPropertyChanged
     {
         public AppController(IApplicationUI npc)
         {
@@ -15,47 +17,24 @@ namespace SimEarth2020
             scrollTimer = new Timer(scrollProc, null, 0, 17);
         }
 
-        public void RaisePropertyChanged(string propName) { UI.RaisePropertyChanged(propName); }
+        public void RaisePropertyChanged([CallerMemberName] string propName = null)
+        {
+            UI.RunOnUIThread(() => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName)));
+        }
+
         public Speed Speed { get; set; } = Speed.Fast;
         private int currentToolCost;
         public int CurrentToolCost
         {
             get => currentToolCost;
-            set { currentToolCost = value; UI.RaisePropertyChanged("CostString"); }
+            set { currentToolCost = value; PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("CurrentToolCost")); }
         }
 
-        public bool TerrainUpDownMode
+        private TerrainUpDownMode terrainUpDownMode = TerrainUpDownMode.None;
+        public TerrainUpDownMode TerrainUpDownMode
         {
-            get { return terrainUpDownModeIsUp; }
-            set { terrainUpDownModeIsUp = value; UI.RaisePropertyChanged("TerrainUpDownString"); }
-        }
-        bool terrainUpDownModeIsUp = true;
-
-        private Tool currentTool = Tool.None;
-
-
-        public string CurrentToolString
-        {
-            get
-            {
-                return CurrentTool.ToString() + " " + toolOption?.ToString();
-            }
-        }
-        private object toolOption;
-
-        public string TitleString
-        {
-            get
-            {
-                if (CurrentWorld == null)
-                {
-                    return "";
-                }
-                else
-                {
-                    return CurrentWorld.ToString();
-                }
-            }
+            get { return terrainUpDownMode; }
+            set { terrainUpDownMode = value; PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("TerrainUpDownMode")); }
         }
 
         public int Energy { get => CurrentWorld?.Energy ?? 0; }
@@ -111,6 +90,10 @@ namespace SimEarth2020
                 // TODO: Figure out costs
                 return 10;
             }
+            else if (tool is TerrainUpDownMode)
+            {
+                return 200;
+            }
             else if (tool == null)
             {
                 switch (CurrentTool)
@@ -119,17 +102,19 @@ namespace SimEarth2020
                         return 5;
                     case Tool.Move:
                         return 25;
-                    case Tool.TerrainUpDown:
-                        return 200;
                 }
             }
             throw new ArgumentException();
         }
 
-        public World CurrentWorld { get; set; }
+        public World CurrentWorld
+        {
+            get => currentWorld;
+            set { currentWorld = value; PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("CurrentWorld")); }
+        }
 
 
-        public float Scaling
+        public double Scaling
         {
             get
             {
@@ -138,22 +123,25 @@ namespace SimEarth2020
             }
             set
             {
-                CurrentWorld.Viewport.RenderScale = value / 100f;
-                RaisePropertyChanged("Scaling");
+                CurrentWorld.Viewport.RenderScale = Math.Clamp((float)value, 1f, 150f) / 100f;
                 stats = new TimingStats();
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Scaling"));
             }
         }
 
         private TimingStats stats = new TimingStats();
+        private World currentWorld;
 
+        public event PropertyChangedEventHandler PropertyChanged;
 
-        private Tool CurrentTool
+        private Tool currentTool = Tool.None;
+        public Tool CurrentTool
         {
             get => currentTool;
             set
             {
                 currentTool = value;
-                UI.RaisePropertyChanged("CurrentToolString");
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("CurrentTool"));
             }
         }
 
@@ -164,6 +152,31 @@ namespace SimEarth2020
             get;
             set;
         } = true;
+        public bool Blitting
+        {
+            get
+            {
+                return CurrentWorld?.Viewport.UseBlitting ?? false;
+            }
+            set
+            {
+                if (CurrentWorld != null)
+                {
+                    CurrentWorld.Viewport.UseBlitting = value;
+                    stats = new TimingStats();
+                }
+            }
+        }
+
+        private object toolOption;
+        public object ToolOption
+        {
+            get => toolOption;
+            set
+            {
+                toolOption = value; PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ToolOption"));
+            }
+        }
 
         public void UpdateViewportSize(float width, float height)
         {
@@ -188,7 +201,7 @@ namespace SimEarth2020
         public void SetCurrentTool(Tool tool, object value)
         {
             var oldTool = CurrentTool;
-            toolOption = value;
+            ToolOption = value;
             CurrentTool = tool;
             CurrentToolCost = GetToolCost(value);
             if (tool == Tool.None)
@@ -207,7 +220,7 @@ namespace SimEarth2020
             var cell = CurrentWorld.Viewport.GetCellAtPoint(pt);
             var px = pt.X;
             var py = pt.Y;
-            UI.SetStatus($"Clicked at ({cell.X}, {cell.Y}) {cell.Lat.Degrees}, {cell.Long.Degrees} {cell.Terrain.Kind.ToString()}");
+            UI.SetStatus($"Clicked at pt={pt} -> cell ({cell.X}, {cell.Y}) {cell.Lat.Degrees}, {cell.Long.Degrees} {cell.Terrain.Kind.ToString()}");
             if (CurrentToolCost <= CurrentWorld.Energy)
             {
                 CurrentWorld.Energy -= CurrentToolCost;
@@ -217,9 +230,9 @@ namespace SimEarth2020
                         break;
                     case Tool.Add:
                         {
-                            if (toolOption is AnimalKind)
+                            if (ToolOption is AnimalKind)
                             {
-                                var kind = (AnimalKind)toolOption;
+                                var kind = (AnimalKind)ToolOption;
                                 if (cell.Animal == null || cell.Animal.Kind != kind)
                                 {
                                     cell.Animal = new AnimalPack(kind, 10);
@@ -230,9 +243,9 @@ namespace SimEarth2020
                                     CurrentWorld.Energy += CurrentToolCost;
                                 }
                             }
-                            else if (toolOption is TechTool)
+                            else if (ToolOption is TechTool)
                             {
-                                cell.TechTool = (TechTool)toolOption;
+                                cell.TechTool = (TechTool)ToolOption;
                             }
                             else
                             {
@@ -242,12 +255,20 @@ namespace SimEarth2020
                         break;
                     case Tool.TerrainUpDown:
                         {
-                            cell.Elevation += terrainUpDownModeIsUp ? 600 : -600;
+                            switch (TerrainUpDownMode)
+                            {
+                                case TerrainUpDownMode.Up:
+                                    cell.Elevation += 600; break;
+                                case TerrainUpDownMode.Down:
+                                    cell.Elevation -= 600; break;
+                                default:
+                                    throw new InvalidOperationException();
+                            }
                         }
                         break;
                     case Tool.Terraform:
                         {
-                            var kind = (TerrainKind)toolOption;
+                            var kind = (TerrainKind)ToolOption;
                             if (cell.Terrain.Kind != kind)
                             {
                                 cell.Terrain = new Terrain(kind);

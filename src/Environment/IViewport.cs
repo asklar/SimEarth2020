@@ -11,6 +11,8 @@ namespace Environment
         float Width { get; set; }
         float CellSize { get; }
         bool EasingIsPositive { get; set; }
+        object Canvas { get; set; }
+        bool UseBlitting { get; set; }
 
         void Scroll(DisplacementDirection dir);
         Cell GetCellAtPoint(Point pt);

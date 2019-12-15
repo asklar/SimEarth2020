@@ -1,5 +1,6 @@
 ﻿using Environment;
 using SimEarth2020;
+using System;
 
 namespace Tests
 {
@@ -17,8 +18,10 @@ namespace Tests
         public void Inspect(double px, double py, Cell cell)
         { }
 
-        public void RaisePropertyChanged(string propName)
-        { }
+        public void RunOnUIThread(Action action)
+        {
+            action();
+        }
 
         public void SetStatus(string s)
         { }
