@@ -28,9 +28,10 @@ namespace Environment
         TerrainUpDownMode TerrainUpDownMode { get; set; }
         int CurrentToolCost { get; set; }
         bool MicroMoveEnabled { get; }
-        bool Blitting { get; set; }
+        bool UseBlitting { get; set; }
         Tool CurrentTool { get; set; }
         object ToolOption { get; set; }
+        bool UseDiffing { get; set; }
 
         IViewport CreateViewport();
         void RaisePropertyChanged(string propName);

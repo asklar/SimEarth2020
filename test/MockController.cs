@@ -16,10 +16,11 @@ namespace Tests
 
         public bool MicroMoveEnabled => false;
 
-        public bool Blitting { get; set; }
+        public bool UseBlitting { get; set; }
         public TerrainUpDownMode TerrainUpDownMode { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public Tool CurrentTool { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public object ToolOption { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public bool UseDiffing { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
         public event PropertyChangedEventHandler PropertyChanged;
 

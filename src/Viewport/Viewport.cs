@@ -91,8 +91,8 @@ namespace Viewport2D
 
         }
 
-        public bool UseBlitting { get; set; } = true;
-        public bool UseDiffing { get; set; } = true;
+        public bool UseBlitting { get; set; }
+        public bool UseDiffing { get => useDiffing; set { useDiffing = value; lastBackgroundRenderTarget = null; } }
         public object Canvas { get; set; }
 
         private async Task _DumpCanvasRenderTarget(CanvasRenderTarget source, string fname)
@@ -134,12 +134,7 @@ namespace Viewport2D
                 blittingSession = blittingTarget.CreateDrawingSession();
             }
 
-            Clear(blittingSession ?? session);
-
             DrawForegroundAndBackground(blittingSession ?? session);
-            DumpCanvasRenderTarget(currentRenderTarget, "6-blit_element");
-            blittingSession?.Dispose();
-            blittingSession = null;
 
             session = arg as CanvasDrawingSession;
             if (blittingTarget != null)
@@ -150,13 +145,17 @@ namespace Viewport2D
                 {
                     for (float x = 0; x < Width; x += ScaledMapWidth)
                     {
-                        session.DrawImage(currentRenderTarget, x, y);
+                        session.DrawImage(blittingTarget, x, y);
                     }
                 }
             }
 
-            if (session != null)
+            /// DumpCanvasRenderTarget(currentRenderTarget, "6-blit_element");
+            if (blittingSession != null)
             {
+                blittingSession.Flush();
+                blittingSession.Dispose();
+                blittingSession = null;
             }
         }
 
@@ -195,9 +194,9 @@ namespace Viewport2D
         private void DrawForeground(CanvasDrawingSession session, float w, float h)
         {
             DrawProc((cellDisplay, renderX, renderY) =>
-            {
-                cellDisplay.DrawForeground(session, renderX, renderY, CellSize);
-            }, w, h);
+                {
+                    cellDisplay.DrawForeground(session, renderX, renderY, CellSize);
+                }, w, h);
         }
 
         private void DrawBackgroundUpdates(CanvasDrawingSession session, float w, float h)
@@ -208,7 +207,7 @@ namespace Viewport2D
             }, w, h);
 
             session?.Flush();
-            DumpCanvasRenderTarget(currentRenderTarget, "3-bkgupdate");
+            /// DumpCanvasRenderTarget(currentRenderTarget, "3-bkgupdate");
         }
 
         private void DrawCachedBackground(CanvasDrawingSession session, float w, float h)
@@ -263,6 +262,7 @@ namespace Viewport2D
 
         private IEasing Easing = new CosEasing();
         private bool easingIsPositive = true;
+        private bool useDiffing;
 
         private float GetSpeed()
         {

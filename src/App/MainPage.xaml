@@ -71,8 +71,9 @@
                     <ToggleMenuFlyoutItem Text="Medium" Click="SetSpeed" IsChecked="{Binding Converter={StaticResource SpeedToMenuConverter},ConverterParameter=Medium, Mode=OneWay}"/>
                     <ToggleMenuFlyoutItem Text="Fast" Click="SetSpeed" IsChecked="{Binding Converter={StaticResource SpeedToMenuConverter},ConverterParameter=Fast, Mode=OneWay}"/>
                 </MenuFlyoutSubItem>
-                <ToggleMenuFlyoutItem Text="Micromoves" IsChecked="{Binding Path=Controller.MicroMoveEnabled, Mode=TwoWay}" />
-                <ToggleMenuFlyoutItem Text="Use blitting" IsChecked="{Binding Path=Controller.Blitting, Mode=TwoWay}" />
+                <ToggleMenuFlyoutItem Text="Micromoves" IsChecked="{Binding Path=Controller.MicroMoveEnabled,Mode=TwoWay}" />
+                <ToggleMenuFlyoutItem Text="Use blitting" IsChecked="{Binding Path=Controller.UseBlitting,Mode=TwoWay}" />
+                <ToggleMenuFlyoutItem Text="Use diffing" IsChecked="{Binding Path=Controller.UseDiffing,Mode=TwoWay}" />
             </MenuBarItem>
 
         </MenuBar>

@@ -284,6 +284,8 @@ where TEnum : struct, IConvertible, IComparable, IFormattable
         {
             Controller.UpdateViewportSize((float)WorldCanvas.RenderSize.Width, (float)WorldCanvas.RenderSize.Height);
             Controller.Scaling = 33f;
+            Controller.UseBlitting = true;
+            Controller.UseDiffing = true;
             world.Terraform();
             WorldCanvas.Focus(FocusState.Programmatic);
         }

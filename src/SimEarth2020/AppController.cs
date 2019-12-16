@@ -125,7 +125,7 @@ namespace SimEarth2020
             {
                 CurrentWorld.Viewport.RenderScale = Math.Clamp((float)value, 1f, 150f) / 100f;
                 stats = new TimingStats();
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Scaling"));
+                RaisePropertyChanged();
             }
         }
 
@@ -152,7 +152,8 @@ namespace SimEarth2020
             get;
             set;
         } = true;
-        public bool Blitting
+
+        public bool UseBlitting
         {
             get
             {
@@ -163,6 +164,24 @@ namespace SimEarth2020
                 if (CurrentWorld != null)
                 {
                     CurrentWorld.Viewport.UseBlitting = value;
+                    RaisePropertyChanged();
+                    stats = new TimingStats();
+                }
+            }
+        }
+
+        public bool UseDiffing
+        {
+            get
+            {
+                return CurrentWorld?.Viewport.UseDiffing ?? false;
+            }
+            set
+            {
+                if (CurrentWorld != null)
+                {
+                    CurrentWorld.Viewport.UseDiffing = value;
+                    RaisePropertyChanged();
                     stats = new TimingStats();
                 }
             }

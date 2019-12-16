@@ -1,6 +1,5 @@
 ﻿using Environment;
 using Microsoft.Graphics.Canvas;
-using Microsoft.Graphics.Canvas.UI.Xaml;
 using System;
 using System.IO;
 using System.Threading.Tasks;
@@ -11,7 +10,7 @@ namespace SimEarth2020
     {
         public static CanvasBitmap[] Animals { get; private set; }
 
-        public static async Task CreateResources(CanvasAnimatedControl canvas)
+        public static async Task CreateResources(ICanvasResourceCreator canvas)
         {
             Animals = new CanvasBitmap[Enum.GetValues(typeof(AnimalKind)).Length];
             foreach (var v in Enum.GetNames(typeof(AnimalKind)))
