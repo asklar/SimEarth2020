@@ -2,8 +2,10 @@
 using Microsoft.Graphics.Canvas;
 using Microsoft.Graphics.Canvas.Text;
 using System;
+using System.Numerics;
 using Viewport2D;
 using Windows.Foundation;
+using Windows.UI;
 
 // The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 
@@ -14,11 +16,40 @@ namespace SimEarth2020
     {
         public CellDisplay2D(Cell cell) : base(cell) { }
 
+        class CacheParams : IEquatable<CacheParams>
+        {
+            public CacheParams(IViewport viewport)
+            {
+                this.viewport = viewport;
+            }
+            public float X;
+            public float Y;
+            public float CellSize;
+            public Color Background;
+            public AnimalPack AnimalPack;
+            private IViewport viewport;
+            public bool Equals(CacheParams other)
+            {
+                return other != null && viewport == other.viewport &&
+                    viewport.UseDiffing && viewport.IsDiffingCachePresent &&
+                    (X == other.X &&
+                    Y == other.Y && 
+                    CellSize == other.CellSize && 
+                    Background == other.Background &&
+                    AnimalPack == other.AnimalPack);
+            }
+        }
+        CacheParams cache;
         public void DrawBackground(object arg, float x, float y, float cellSize)
         {
-            var s = arg as CanvasDrawingSession;
-            s.FillRectangle(new Rect(x * cellSize, y * cellSize, cellSize, cellSize),
-                Background);
+            CacheParams newParams = new CacheParams(cell.World.Viewport) { X = x, Y = y, CellSize = cellSize, Background = Background, AnimalPack = cell.Animal };
+            if (!newParams.Equals(cache))
+            {
+                var s = arg as CanvasDrawingSession;
+                s.FillRectangle(new Rect(x * cellSize, y * cellSize, cellSize, cellSize),
+                    Background);
+            }
+            cache = newParams;
         }
 
         public void DrawForeground(object arg, float x, float y, float cellSize)

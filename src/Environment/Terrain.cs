@@ -71,7 +71,11 @@ namespace Environment
         public void Tick(float CosLatitude)
         {
             int growth = (int)(Stats.GrowthPerTurn * CosLatitude);
-            RemainingFood = Math.Min(RemainingFood + growth, Stats.MaxFood);
+            RemainingFood += growth;
+            if (RemainingFood > Stats.MaxFood)
+            {
+                RemainingFood = Stats.MaxFood;
+            }
             double temperature = GetTemperature(CosLatitude).Celsius;
             // TODO: State machine for terrain to become a different terrain 
             // based on temperature, proximity to water, etc.

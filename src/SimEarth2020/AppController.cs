@@ -217,6 +217,10 @@ namespace SimEarth2020
 
         public void Click(Point pt)
         {
+            if (CurrentWorld == null)
+            {
+                return;
+            }
             var cell = CurrentWorld.Viewport.GetCellAtPoint(pt);
             var px = pt.X;
             var py = pt.Y;

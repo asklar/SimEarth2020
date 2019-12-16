@@ -1,8 +1,10 @@
 ﻿using Environment;
 using Microsoft.Graphics.Canvas;
 using Microsoft.Graphics.Canvas.Text;
+using Microsoft.Graphics.Canvas.UI.Xaml;
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Numerics;
 using System.Threading.Tasks;
 using Windows.Foundation;
@@ -29,8 +31,29 @@ namespace Viewport2D
         public float CellSize => (RenderScale * CellSize_0);
 
 
-        public float X { get => viewportStart.X; }
-        public float Y { get => viewportStart.Y; }
+        public float X
+        {
+            get => viewportStart.X;
+            private set
+            {
+                if (viewportStart.X != value)
+                {
+                    lastBackgroundRenderTarget = null;
+                }
+                viewportStart.X = value; 
+            }
+        }
+        public float Y
+        {
+            get => viewportStart.Y; private set
+            {
+                if (viewportStart.Y != value)
+                {
+                    lastBackgroundRenderTarget = null;
+                }
+                viewportStart.Y = value;
+            }
+        }
 
         public float Width { get; set; }
         public float Height { get; set; }
@@ -47,11 +70,11 @@ namespace Viewport2D
 
         private void DrawProc(Action<ICellDisplay2D, float, float> action, float w, float h)
         {
-            var x0 = viewportStart.X / CellSize;
-            var y0 = viewportStart.Y / CellSize;
+            var x0 = X / CellSize;
+            var y0 = Y / CellSize;
 
-            float xf = (viewportStart.X + w + CellSize - 1) / CellSize;
-            float yf = (viewportStart.Y + h + CellSize - 1) / CellSize;
+            float xf = (X + w + CellSize - 1) / CellSize;
+            float yf = (Y + h + CellSize - 1) / CellSize;
 
             for (var y = y0; y < yf; y++)
             {
@@ -70,9 +93,31 @@ namespace Viewport2D
         }
 
         public bool UseBlitting { get; set; } = true;
+        public bool UseDiffing { get; set; } = true;
         public object Canvas { get; set; }
+
+        private async Task _DumpCanvasRenderTarget(CanvasRenderTarget source, string fname)
+        {
+            using (var stream = await KnownFolders.PicturesLibrary.OpenStreamForWriteAsync(fname + ".png", CreationCollisionOption.FailIfExists))
+            {
+                await source.SaveAsync(stream.AsRandomAccessStream(), CanvasBitmapFileFormat.Png);
+            }
+        }
+
+        public void DumpCanvasRenderTarget(CanvasRenderTarget source, string filename)
+        {
+            if (source != null)
+            {
+                /// DEBUG ONLY
+                /// source.SaveAsync(ApplicationData.Current.LocalFolder.Path + "\\" + frameNumber + "_" + filename + ".png", CanvasBitmapFileFormat.Png).AsTask().Wait();
+            }
+        }
+
+        private int frameNumber = 0;
+
         public void Draw(object arg)
         {
+            frameNumber++;
             /// Draw works in one of two modes:
             /// In blitting mode, we create a bitmap where we draw one copy of the world,
             /// then we blit that bitmap over and over inside the canvas.
@@ -81,20 +126,23 @@ namespace Viewport2D
             /// However we're going to be calling fill/draw for cells we have already rendered.
 
             var session = arg as CanvasDrawingSession;
-            CanvasRenderTarget renderTarget = null;
-
+            CanvasRenderTarget blittingTarget = null;
+            CanvasDrawingSession blittingSession = null;
             if (UseBlitting && (Width > ScaledMapWidth || Height > ScaledMapWidth))
             {
-                renderTarget = new CanvasRenderTarget(Canvas as ICanvasResourceCreatorWithDpi, ScaledMapWidth, ScaledMapWidth);
-                session = renderTarget.CreateDrawingSession();
+                blittingTarget = new CanvasRenderTarget(Canvas as ICanvasResourceCreatorWithDpi, Width, Height);
+                blittingSession = blittingTarget.CreateDrawingSession();
             }
 
-            Clear(session);
+            Clear(blittingSession ?? session);
 
-            DrawForegroundAndBackground(session);
+            DrawForegroundAndBackground(blittingSession ?? session);
+            DumpCanvasRenderTarget(currentRenderTarget, "6-blit_element");
+            blittingSession?.Dispose();
+            blittingSession = null;
 
             session = arg as CanvasDrawingSession;
-            if (renderTarget != null)
+            if (blittingTarget != null)
             {
                 // We can save a lot of draw cycles by just tile-blitting a world bitmap
                 Clear(session); // now we clear the whole screen
@@ -103,7 +151,7 @@ namespace Viewport2D
                     Debug.WriteLine($"blt: {y}");
                     for (float x = 0; x < Width; x += ScaledMapWidth)
                     {
-                        session.DrawImage(renderTarget, x, y);
+                        session.DrawImage(currentRenderTarget, x, y);
                     }
                 }
             }
@@ -113,38 +161,70 @@ namespace Viewport2D
                 session.FillRectangle(new Rect(0, 0, 100, 20), Colors.BlanchedAlmond);
                 session.DrawText($"{viewportStart}", new Vector2(0, 0), Colors.Black, format);
             }
-
         }
 
-        private async Task Save(CanvasRenderTarget renderTarget)
-        {
-            var file = await KnownFolders.SavedPictures.CreateFileAsync("1.png", CreationCollisionOption.ReplaceExisting);
-            {
-                using (var fs = await file.OpenAsync(FileAccessMode.ReadWrite))
-                {
-                    await renderTarget.SaveAsync(file.Path, CanvasBitmapFileFormat.Png, 1f);
-                }
-            }
-        }
+
+        private CanvasRenderTarget lastBackgroundRenderTarget = null;
+        private CanvasRenderTarget currentRenderTarget = null;
+        public bool IsDiffingCachePresent { get => lastBackgroundRenderTarget != null; }
 
         private void DrawForegroundAndBackground(CanvasDrawingSession session)
         {
             float w = UseBlitting ? Math.Min(ScaledMapWidth, Width) : Width;
             float h = UseBlitting ? Math.Min(ScaledMapWidth, Height) : Height;
-            DrawProc((cellDisplay, renderX, renderY) =>
-            {
-                cellDisplay.DrawBackground(session, renderX, renderY, CellSize);
-            }, w, h);
 
+            if (UseDiffing && Canvas != null)
+            {
+                currentRenderTarget = new CanvasRenderTarget(Canvas as ICanvasResourceCreatorWithDpi, w, h);
+                using (var backgroundSession = currentRenderTarget.CreateDrawingSession())
+                {
+                    DrawCachedBackground(backgroundSession, w, h);
+                    DrawBackgroundUpdates(backgroundSession, w, h);
+                    backgroundSession.Flush();
+                }
+                session.DrawImage(currentRenderTarget);
+                lastBackgroundRenderTarget = currentRenderTarget;
+            }
+            else
+            {
+                DrawBackgroundUpdates(session, w, h);
+            }
+
+            DrawForeground(session, w, h);
+        }
+
+        private void DrawForeground(CanvasDrawingSession session, float w, float h)
+        {
             DrawProc((cellDisplay, renderX, renderY) =>
             {
                 cellDisplay.DrawForeground(session, renderX, renderY, CellSize);
             }, w, h);
         }
 
+        private void DrawBackgroundUpdates(CanvasDrawingSession session, float w, float h)
+        {
+            DrawProc((cellDisplay, renderX, renderY) =>
+            {
+                cellDisplay.DrawBackground(session, renderX, renderY, CellSize);
+            }, w, h);
+
+            session?.Flush();
+            DumpCanvasRenderTarget(currentRenderTarget, "3-bkgupdate");
+        }
+
+        private void DrawCachedBackground(CanvasDrawingSession session, float w, float h)
+        {
+            if (lastBackgroundRenderTarget != null)
+            {
+                session.DrawImage(lastBackgroundRenderTarget);
+                //session.Flush();
+                //DumpCanvasRenderTarget(currentRenderTarget, "2-lastbkg");
+            }
+        }
+
         private CanvasTextFormat format = new CanvasTextFormat() { FontSize = 8 };
 
-        Vector2 viewportStart = new Vector2();
+        private Vector2 viewportStart = new Vector2();
         public void Scroll(DisplacementDirection dir)
         {
             float displacementSpeed;
@@ -162,17 +242,17 @@ namespace Viewport2D
             switch (dir)
             {
                 case DisplacementDirection.Down:
-                    viewportStart.Y += displacementSpeed; break;
+                    Y += displacementSpeed; break;
                 case DisplacementDirection.Up:
-                    viewportStart.Y -= displacementSpeed; break;
+                    Y -= displacementSpeed; break;
                 case DisplacementDirection.Left:
-                    viewportStart.X -= displacementSpeed; break;
+                    X -= displacementSpeed; break;
                 case DisplacementDirection.Right:
-                    viewportStart.X += displacementSpeed; break;
+                    X += displacementSpeed; break;
             }
 
-            viewportStart.X = (viewportStart.X + ScaledMapWidth) % ScaledMapWidth;
-            viewportStart.Y = (viewportStart.Y + ScaledMapWidth) % ScaledMapWidth;
+            X = (X + ScaledMapWidth) % ScaledMapWidth;
+            Y = (Y + ScaledMapWidth) % ScaledMapWidth;
         }
 
         public bool EasingIsPositive
@@ -183,6 +263,7 @@ namespace Viewport2D
                 easingIsPositive = value; displacementTimer = Stopwatch.StartNew();
             }
         }
+
         private IEasing Easing = new CosEasing();
         private bool easingIsPositive = true;
 
@@ -196,8 +277,8 @@ namespace Viewport2D
 
         public Cell GetCellAtPoint(Point pt)
         {
-            var x = (int)((pt.X + viewportStart.X + .5f) / CellSize);
-            var y = (int)((pt.Y + viewportStart.Y + .5f) / CellSize);
+            var x = (int)((pt.X + X + .5f) / CellSize);
+            var y = (int)((pt.Y + Y + .5f) / CellSize);
             x = (x + N) % N;
             y = (y + N) % N;
             return world.Cells[x, y];
@@ -219,8 +300,8 @@ namespace Viewport2D
         public Point CellIndexToScreenCoords(float effectiveX, float effectiveY)
         {
             return new Point(
-                (effectiveX * CellSize - viewportStart.X + Width) % Width,
-                (effectiveY * CellSize - viewportStart.Y + Height) % Height
+                (effectiveX * CellSize - X + Width) % Width,
+                (effectiveY * CellSize - Y + Height) % Height
                 );
         }
     }

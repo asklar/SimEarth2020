@@ -13,6 +13,8 @@ namespace Environment
         bool EasingIsPositive { get; set; }
         object Canvas { get; set; }
         bool UseBlitting { get; set; }
+        bool UseDiffing { get; set; }
+        bool IsDiffingCachePresent { get; }
 
         void Scroll(DisplacementDirection dir);
         Cell GetCellAtPoint(Point pt);

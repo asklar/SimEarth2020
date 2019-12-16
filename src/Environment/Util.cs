@@ -39,7 +39,7 @@ namespace Environment
             }
         }
 
-
+#if DEBUG
         public static bool DebugOn { get; set; } = false;
         public static void Debug(string s)
         {
@@ -48,7 +48,9 @@ namespace Environment
                 System.Diagnostics.Debug.WriteLine(s);
             }
         }
-
+#else
+        public static void Debug(string s) { }
+#endif
         public static string MakeEnumName(string v)
         {
             string r = "";
