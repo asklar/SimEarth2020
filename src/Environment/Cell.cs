@@ -265,7 +265,7 @@ namespace Environment
                         Animal.Location = new Point(dx, dy);
                         Util.Debug($"start animal move {X},{Y} -> {x},{y} Rel loc: {Animal.Location}");
                     }
-                    // Debug.WriteLine($"Moving {Animal.Kind}(LT {Animal.LastTick}) from ({X}, {Y}) to ({x}, {y})");
+                    // Util.Debug($"Moving {Animal.Kind}(LT {Animal.LastTick}) from ({X}, {Y}) to ({x}, {y})");
                     World.Cells[x, y].Animal = Animal;
                     World.Cells[x, y].Animal.LastTick = World.CurrentTick;
                     Animal = null;

@@ -310,7 +310,10 @@ namespace SimEarth2020
                 stats.AddValue(s.ElapsedMilliseconds);
                 float t = stats.GetValue();
                 float fps = 1000f / t;
-                UI.DebugNotifyFPS(arg, fps);
+                DebugStats dbgStats = new DebugStats();
+                dbgStats.FPS = fps;
+                dbgStats.PctReused = 100.0f * viewport.DiffingStats.ReusedCells / (float)viewport.DiffingStats.TotalCells;
+                UI.DebugNotifyFPS(arg, dbgStats);
             }
             else
             {

@@ -107,7 +107,7 @@ namespace Environment
 
         private void Become(TerrainKind kind)
         {
-            // Debug.WriteLine($"{Kind} has become {kind}");
+            // Util.Debug($"{Kind} has become {kind}");
             Stats = TerrainStats.Get(kind);
             InvalidateCache();
         }

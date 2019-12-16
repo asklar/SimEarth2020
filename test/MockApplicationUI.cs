@@ -7,9 +7,9 @@ namespace Tests
     class MockApplicationUI : IApplicationUI
     {
         public float FPS { get; set; }
-        public void DebugNotifyFPS(object session, float fps)
+        public void DebugNotifyFPS(object session, DebugStats stats)
         {
-            FPS = fps;
+            FPS = stats.FPS;
         }
 
         public void DrawNewGameHint(object session)

@@ -2,7 +2,6 @@
 using Microsoft.Graphics.Canvas;
 using Microsoft.Graphics.Canvas.Text;
 using System;
-using System.Numerics;
 using Viewport2D;
 using Windows.Foundation;
 using Windows.UI;
@@ -33,21 +32,27 @@ namespace SimEarth2020
                 return other != null && viewport == other.viewport &&
                     viewport.UseDiffing && viewport.IsDiffingCachePresent &&
                     (X == other.X &&
-                    Y == other.Y && 
-                    CellSize == other.CellSize && 
+                    Y == other.Y &&
+                    CellSize == other.CellSize &&
                     Background == other.Background &&
-                    AnimalPack == other.AnimalPack);
+                    AnimalPack == other.AnimalPack
+                );
             }
         }
         CacheParams cache;
         public void DrawBackground(object arg, float x, float y, float cellSize)
         {
             CacheParams newParams = new CacheParams(cell.World.Viewport) { X = x, Y = y, CellSize = cellSize, Background = Background, AnimalPack = cell.Animal };
+            cell.World.Viewport.DiffingStats.TotalCells++;
             if (!newParams.Equals(cache))
             {
                 var s = arg as CanvasDrawingSession;
                 s.FillRectangle(new Rect(x * cellSize, y * cellSize, cellSize, cellSize),
                     Background);
+            }
+            else
+            {
+                cell.World.Viewport.DiffingStats.ReusedCells++;
             }
             cache = newParams;
         }
@@ -57,7 +62,7 @@ namespace SimEarth2020
             var s = arg as CanvasDrawingSession;
             if (cell.Animal != null)
             {
-                Environment.Util.Debug($"Draw cell: {cell.X},{cell.Y}   rel loc: {cell.Animal.Location}");
+                Environment.Util.Debug($"Draw cell: {cell.X},{cell.Y}   rel loc: {cell.Animal.Location}. CellSize: {cellSize}");
                 if (Math.Abs(cell.Animal.Location.X) > 1)
                 {
                     // Something went wrong
@@ -65,9 +70,17 @@ namespace SimEarth2020
                 float rx = (x + (float)cell.Animal.Location.X) * cellSize;
                 float ry = (y + (float)cell.Animal.Location.Y) * cellSize;
                 CanvasBitmap b = BitmapManager.Animals[(int)cell.Animal.Kind];
+                const float SmallElementThreshold = 6f;
                 if (b != null)
                 {
-                    s.DrawImage(b, new Rect(rx, ry, cellSize, cellSize));
+                    //if (cellSize > SmallElementThreshold)
+                    {
+                        s.DrawImage(b, new Rect(rx, ry, cellSize, cellSize));
+                    }
+                    /*else
+                    {
+                       s.FillRectangle(rx, ry, cellSize, cellSize, Colors.DarkMagenta);
+                    }*/
                 }
                 else
                 {
@@ -76,7 +89,6 @@ namespace SimEarth2020
             }
             // DEBUG
             // s.DrawText($"{cell.X}", x * cellSize, y * cellSize, Foreground, format);
-
         }
         static CanvasTextFormat format = new CanvasTextFormat() { FontSize = 6 };
     }

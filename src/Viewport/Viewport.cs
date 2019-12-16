@@ -1,7 +1,6 @@
 ﻿using Environment;
 using Microsoft.Graphics.Canvas;
 using Microsoft.Graphics.Canvas.Text;
-using Microsoft.Graphics.Canvas.UI.Xaml;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -40,7 +39,7 @@ namespace Viewport2D
                 {
                     lastBackgroundRenderTarget = null;
                 }
-                viewportStart.X = value; 
+                viewportStart.X = value;
             }
         }
         public float Y
@@ -114,10 +113,11 @@ namespace Viewport2D
         }
 
         private int frameNumber = 0;
-
+        public DiffingStats DiffingStats { get; set; }
         public void Draw(object arg)
         {
             frameNumber++;
+            DiffingStats = new DiffingStats();
             /// Draw works in one of two modes:
             /// In blitting mode, we create a bitmap where we draw one copy of the world,
             /// then we blit that bitmap over and over inside the canvas.
@@ -148,7 +148,6 @@ namespace Viewport2D
                 Clear(session); // now we clear the whole screen
                 for (float y = 0; y < Height; y += ScaledMapWidth)
                 {
-                    Debug.WriteLine($"blt: {y}");
                     for (float x = 0; x < Width; x += ScaledMapWidth)
                     {
                         session.DrawImage(currentRenderTarget, x, y);
@@ -158,8 +157,6 @@ namespace Viewport2D
 
             if (session != null)
             {
-                session.FillRectangle(new Rect(0, 0, 100, 20), Colors.BlanchedAlmond);
-                session.DrawText($"{viewportStart}", new Vector2(0, 0), Colors.Black, format);
             }
         }
 
@@ -173,11 +170,13 @@ namespace Viewport2D
             float w = UseBlitting ? Math.Min(ScaledMapWidth, Width) : Width;
             float h = UseBlitting ? Math.Min(ScaledMapWidth, Height) : Height;
 
+            Clear(session);
             if (UseDiffing && Canvas != null)
             {
                 currentRenderTarget = new CanvasRenderTarget(Canvas as ICanvasResourceCreatorWithDpi, w, h);
                 using (var backgroundSession = currentRenderTarget.CreateDrawingSession())
                 {
+                    Clear(backgroundSession);
                     DrawCachedBackground(backgroundSession, w, h);
                     DrawBackgroundUpdates(backgroundSession, w, h);
                     backgroundSession.Flush();
@@ -217,8 +216,6 @@ namespace Viewport2D
             if (lastBackgroundRenderTarget != null)
             {
                 session.DrawImage(lastBackgroundRenderTarget);
-                //session.Flush();
-                //DumpCanvasRenderTarget(currentRenderTarget, "2-lastbkg");
             }
         }
 

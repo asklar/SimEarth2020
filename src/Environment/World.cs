@@ -173,7 +173,7 @@ namespace Environment
                 if (onWater || Cells[x, y].Terrain.Kind != TerrainKind.Ocean)
                 {
                     Cells[x, y].Terrain = new Terrain(kind);
-                    // Debug.WriteLine($"Set {kind} at latitude {cells[x, y].Lat.Degrees}°");
+                    // Util.Debug($"Set {kind} at latitude {cells[x, y].Lat.Degrees}°");
                 }
             }
         }
@@ -216,7 +216,7 @@ namespace Environment
                 budget -= SetTerrainAround(x, y, radius, kind);
             }
             sw.Stop();
-            // Debug.WriteLine($"CoverWithTerrain {kind} {sw.ElapsedMilliseconds} ms");
+            // Util.Debug($"CoverWithTerrain {kind} {sw.ElapsedMilliseconds} ms");
         }
 
 
@@ -230,7 +230,7 @@ namespace Environment
         /// <returns></returns>
         private int SetTerrainAround(int x, int y, double radius, TerrainKind kind)
         {
-            // Debug.WriteLine($"Set {kind} around ({x}, {y}) radius={radius}");
+            // Util.Debug($"Set {kind} around ({x}, {y}) radius={radius}");
             const double CoverPct = .6;
             int cover = (int)(Math.PI * radius * radius * CoverPct);
             int ret = cover;

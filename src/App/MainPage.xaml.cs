@@ -5,10 +5,10 @@ using Microsoft.Graphics.Canvas.UI;
 using Microsoft.Graphics.Canvas.UI.Xaml;
 using SimEarth2020;
 using System;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.Numerics;
 using System.Threading;
+using Windows.Foundation;
 using Windows.System;
 using Windows.UI;
 using Windows.UI.Xaml;
@@ -83,11 +83,11 @@ namespace SimEarth2020App
                     args.Handled = true;
                     break;
                 case VirtualKey.PageUp:
-                    Controller.Scaling++;
+                    Controller.Scaling--;
                     args.Handled = true;
                     break;
                 case VirtualKey.PageDown:
-                    Controller.Scaling--;
+                    Controller.Scaling++;
                     args.Handled = true;
                     break;
             }
@@ -104,18 +104,21 @@ namespace SimEarth2020App
 
         protected override void OnKeyUp(KeyRoutedEventArgs e)
         {
-            switch (e.Key)
+            if (Controller.CurrentWorld != null)
             {
-                case VirtualKey.Up:
-                case VirtualKey.Down:
-                case VirtualKey.Left:
-                case VirtualKey.Right:
-                    Controller.CurrentWorld.Viewport.EasingIsPositive = false;
-                    Thread.Sleep(150);
-                    Controller.Scroll(DisplacementDirection.None);
-                    Controller.CurrentWorld.Viewport.EasingIsPositive = true;
-                    e.Handled = true;
-                    break;
+                switch (e.Key)
+                {
+                    case VirtualKey.Up:
+                    case VirtualKey.Down:
+                    case VirtualKey.Left:
+                    case VirtualKey.Right:
+                        Controller.CurrentWorld.Viewport.EasingIsPositive = false;
+                        Thread.Sleep(150);
+                        Controller.Scroll(DisplacementDirection.None);
+                        Controller.CurrentWorld.Viewport.EasingIsPositive = true;
+                        e.Handled = true;
+                        break;
+                }
             }
             base.OnKeyUp(e);
         }
@@ -386,10 +389,14 @@ where TEnum : struct, IConvertible, IComparable, IFormattable
             });
         }
 
-        public void DebugNotifyFPS(object args, float fps)
+        public void DebugNotifyFPS(object args, DebugStats stats)
         {
             CanvasDrawingSession session = args as CanvasDrawingSession;
-            session.DrawText($"Draw [{(Controller.Scaling / 100f):N2}x] {fps:N1} fps", new Vector2(0, 10), Colors.Black, format);
+            session.FillRectangle(new Rect(0, 0, 100, 30), Colors.BlanchedAlmond);
+            var viewport = Controller.CurrentWorld.Viewport;
+            session.DrawText($"{viewport.X},{viewport.Y}", new Vector2(0, 0), Colors.Black, format);
+            session.DrawText($"Draw [{(Controller.Scaling / 100f):N2}x] {stats.FPS:N1} fps", new Vector2(0, 10), Colors.Black, format);
+            session.DrawText($"Reused: {stats.PctReused:N2}%", new Vector2(0, 20), Colors.Black, format);
         }
 
         public void DrawNewGameHint(object arg)
