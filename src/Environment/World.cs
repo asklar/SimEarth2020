@@ -107,6 +107,7 @@ namespace Environment
                 case Speed.Slow: return 1e2;
                 case Speed.Medium: return 1e3;
                 case Speed.Fast: return 1e4;
+                case Speed.Paused: return 0;
             }
             throw new InvalidOperationException();
         }

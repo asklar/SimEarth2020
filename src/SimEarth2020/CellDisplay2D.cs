@@ -70,17 +70,9 @@ namespace SimEarth2020
                 float rx = (x + (float)cell.Animal.Location.X) * cellSize;
                 float ry = (y + (float)cell.Animal.Location.Y) * cellSize;
                 CanvasBitmap b = BitmapManager.Animals[(int)cell.Animal.Kind];
-                const float SmallElementThreshold = 6f;
                 if (b != null)
                 {
-                    //if (cellSize > SmallElementThreshold)
-                    {
-                        s.DrawImage(b, new Rect(rx, ry, cellSize, cellSize));
-                    }
-                    /*else
-                    {
-                       s.FillRectangle(rx, ry, cellSize, cellSize, Colors.DarkMagenta);
-                    }*/
+                    s.DrawImage(b, new Rect(rx, ry, cellSize, cellSize));
                 }
                 else
                 {

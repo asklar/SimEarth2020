@@ -103,7 +103,7 @@ namespace Viewport2D
             }
         }
 
-        public void DumpCanvasRenderTarget(CanvasRenderTarget source, string filename)
+        public static void DumpCanvasRenderTarget(CanvasRenderTarget source, string filename)
         {
             if (source != null)
             {
@@ -176,7 +176,7 @@ namespace Viewport2D
                 using (var backgroundSession = currentRenderTarget.CreateDrawingSession())
                 {
                     Clear(backgroundSession);
-                    DrawCachedBackground(backgroundSession, w, h);
+                    DrawCachedBackground(backgroundSession);
                     DrawBackgroundUpdates(backgroundSession, w, h);
                     backgroundSession.Flush();
                 }
@@ -210,15 +210,13 @@ namespace Viewport2D
             /// DumpCanvasRenderTarget(currentRenderTarget, "3-bkgupdate");
         }
 
-        private void DrawCachedBackground(CanvasDrawingSession session, float w, float h)
+        private void DrawCachedBackground(CanvasDrawingSession session)
         {
             if (lastBackgroundRenderTarget != null)
             {
                 session.DrawImage(lastBackgroundRenderTarget);
             }
         }
-
-        private CanvasTextFormat format = new CanvasTextFormat() { FontSize = 8 };
 
         private Vector2 viewportStart = new Vector2();
         public void Scroll(DisplacementDirection dir)
