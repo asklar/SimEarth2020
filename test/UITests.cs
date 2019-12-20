@@ -1,4 +1,5 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Environment;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
 using Windows.Foundation;
 
@@ -15,7 +16,7 @@ namespace Tests
             appui = new MockApplicationUI();
             appController = new MockController2(appui);
             var world = appController.CreateWorld(5);
-            world.Terraform();
+            new Terraformer(world).Terraform();
             appController.CurrentWorld.Tick();
         }
 

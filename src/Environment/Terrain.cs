@@ -17,10 +17,10 @@ namespace Environment
             RemainingFood = (int)(Stats.MaxFood * 0.5);
         }
 
-        private static double GetMaxSaturationPressure(Temperature T)
+        private static float GetMaxSaturationPressure(Temperature T)
         {
             // https://www.engineeringtoolbox.com/water-vapor-saturation-pressure-air-d_689.html
-            return Math.Exp(77.345 + .0057 * T.Kelvin - 7235 / T.Kelvin) / Math.Pow(T.Kelvin, 8.2);
+            return MathF.Exp(77.345f + .0057f * T.Kelvin - 7235f / T.Kelvin) / MathF.Pow(T.Kelvin, 8.2f);
             // Could also use the https://en.wikipedia.org/wiki/Clausius%E2%80%93Clapeyron_relation#Meteorology_and_climatology
             // return 6.1094 * Math.Exp((17.625 * T.Celsius) / (T.Celsius + 243.04));
         }

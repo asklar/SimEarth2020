@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using Windows.Foundation;
 
@@ -9,9 +8,9 @@ namespace Environment
 {
     public class World
     {
-        internal const double RotationalFactor = 4; // 4 for rapidly rotating bodies (Earth), 2 for slowly rotating bodies.
-        internal const double SolarLuminosity = 3.828e26;
-        internal const double DistanceToTheSun = 1.495978707e11;
+        internal const float RotationalFactor = 4f; // 4 for rapidly rotating bodies (Earth), 2 for slowly rotating bodies.
+        internal const float SolarLuminosity = 3.828e26f;
+        internal const float DistanceToTheSun = 1.495978707e11f;
         public World(IController controller, int Size)
         {
             Controller = controller;
@@ -126,59 +125,6 @@ namespace Environment
 
         internal Random Random { get => rand; }
 
-        public void Terraform()
-        {
-            Stopwatch stopwatch = Stopwatch.StartNew();
-            // Oceans
-            CoverWithTerrain(Width * 15 / 40, 2 / 3.0, .8, TerrainKind.Ocean, Angle.FromDegrees(90));
-            // Lakes
-            CoverWithTerrain(3, 2 / 3.0, .4, TerrainKind.Ocean, Angle.FromDegrees(75));
-            // Tundra
-            MakeLatitudeTerrain(Angle.FromDegrees(90), 2, 15, TerrainKind.Tundra, true);
-            // Taiga
-            MakeLatitudeTerrain(Angle.FromDegrees(55), 2, 8, TerrainKind.Taiga, false);
-            MakeLatitudeTerrain(Angle.FromDegrees(-55), 2, 8, TerrainKind.Taiga, false);
-            // Forests
-            MakeLatitudeTerrain(Angle.FromDegrees(45), 2, 15, TerrainKind.Forest, false);
-            MakeLatitudeTerrain(Angle.FromDegrees(-45), 2, 15, TerrainKind.Forest, false);
-            // Jungle
-            MakeLatitudeTerrain(Angle.FromDegrees(0), 2, 20, TerrainKind.Jungle, false);
-            // Grasslands
-            MakeLatitudeTerrain(Angle.FromDegrees(30), 7, 20, TerrainKind.Grass, false);
-            MakeLatitudeTerrain(Angle.FromDegrees(-30), 7, 20, TerrainKind.Grass, false);
-            // Deserts
-            CoverWithTerrain(5, 4, .13, TerrainKind.Desert, Angle.FromDegrees(30));
-            // Swamps
-            CoverWithTerrain(2, 1.5, .3, TerrainKind.Swamp, Angle.FromDegrees(60));
-            stopwatch.Stop();
-            Util.Debug($"Terraform: {stopwatch.ElapsedMilliseconds} ms");
-        }
-
-        /// <summary>
-        /// Creates terrain of the required kind around a particular latitude
-        /// </summary>
-        /// <param name="latitude">The Latitude to create terrain around. Note that you must call this function again with the negative Latitude value to produce somewhat symmetrical terrains</param>
-        /// <param name="Sigma">Standard deviation of how far to stray from the central latitude</param>
-        /// <param name="Coverage">How densely to cover with this terrain</param>
-        /// <param name="kind">The kind of terrain</param>
-        /// <param name="onWater">Indicates whether to put terrain over Ocean. False will not overwrite Ocean terrain.</param>
-        internal void MakeLatitudeTerrain(Angle latitude, double Sigma, double Coverage, TerrainKind kind, bool onWater)
-        {
-            int budget = (int)(Width * Coverage);
-            int y0 = LatitudeToY(latitude);
-            while (budget-- > 0)
-            {
-                int x = rand.Next(0, Width);
-                int y = (int)(rand.GetNormal() * Sigma + y0);
-                y = (y + 16 * Height) % Height;
-                if (onWater || Cells[x, y].Terrain.Kind != TerrainKind.Ocean)
-                {
-                    Cells[x, y].Terrain = new Terrain(kind);
-                    // Util.Debug($"Set {kind} at latitude {cells[x, y].Lat.Degrees}°");
-                }
-            }
-        }
-
         public int LatitudeToY(Angle latitude)
         {
             double y = -(2 * latitude.Radians / Math.PI) * (Height / 2) + (Height / 2);
@@ -192,62 +138,6 @@ namespace Environment
             return new Angle(a);
         }
 
-
-        /// <summary>
-        /// Creates blotch-like terrains of the specified kind
-        /// </summary>
-        /// <param name="MeanRadius">Mean blotch radius</param>
-        /// <param name="Sigma">Standard deviation of the blotch radius</param>
-        /// <param name="Coverage">How densely to cover</param>
-        /// <param name="kind">The kind of terrain to use</param>
-        /// <param name="maxLatitude">The maximum absolute latitude allowed</param>
-        private void CoverWithTerrain(int MeanRadius, double Sigma, double Coverage, TerrainKind kind, Angle maxLatitude)
-        {
-            Stopwatch sw = Stopwatch.StartNew();
-            int Area = Width * Height;
-            int budget = (int)(Area * Coverage);
-            int ymax = LatitudeToY(maxLatitude);
-            int ymin = LatitudeToY(-maxLatitude);
-            while (budget > 0)
-            {
-                int x = rand.Next(0, Width);
-                int y = rand.Next(0, Height);
-                y = Math.Clamp(y, ymax, ymin); // screen coordinates are upside down
-                var radius = (MeanRadius + (rand.NextDouble() - .5) * 3 * Sigma);
-                budget -= SetTerrainAround(x, y, radius, kind);
-            }
-            sw.Stop();
-            // Util.Debug($"CoverWithTerrain {kind} {sw.ElapsedMilliseconds} ms");
-        }
-
-
-        /// <summary>
-        /// Creates a small blotch of terrain around a particular location in the map
-        /// </summary>
-        /// <param name="x"></param>
-        /// <param name="y"></param>
-        /// <param name="radius"></param>
-        /// <param name="kind"></param>
-        /// <returns></returns>
-        private int SetTerrainAround(int x, int y, double radius, TerrainKind kind)
-        {
-            // Util.Debug($"Set {kind} around ({x}, {y}) radius={radius}");
-            const double CoverPct = .6;
-            int cover = (int)(Math.PI * radius * radius * CoverPct);
-            int ret = cover;
-            while (cover-- > 0)
-            {
-                int candX = (int)(x + rand.GetNormal() * radius / 6);
-                int candY = (int)(y + rand.GetNormal() * radius / 6);
-                candX = (candX + Width) % Width;
-                candY = (candY + Height) % Height;
-                if (Cells[candX, candY].Terrain == null || Cells[candX, candY].Terrain.Kind != TerrainKind.Ocean)
-                {
-                    Cells[candX, candY].Terrain = new Terrain(kind);
-                }
-            }
-            return ret;
-        }
 
         public int GetProducedEnergy()
         {

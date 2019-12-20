@@ -4,11 +4,11 @@ namespace Environment
 {
     public struct Temperature : IEquatable<Temperature>
     {
-        public double Kelvin { get; set; }
-        public double Celsius { get => Kelvin - 273.15; }
-        public double Fahrenheit { get => Celsius * 1.8 + 32; }
+        public float Kelvin { get; set; }
+        public float Celsius { get => Kelvin - 273.15f; }
+        public float Fahrenheit { get => Celsius * 1.8f + 32f; }
 
-        public static Temperature FromKelvin(double k)
+        public static Temperature FromKelvin(float k)
         {
             return new Temperature() { Kelvin = k };
         }

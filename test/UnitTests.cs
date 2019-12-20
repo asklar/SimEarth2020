@@ -102,7 +102,7 @@ namespace Tests
         [TestMethod]
         public void TestTemperature()
         {
-            Temperature zeroC = Temperature.FromKelvin(273.15);
+            Temperature zeroC = Temperature.FromKelvin(273.15f);
             Assert.AreEqual(0, zeroC.Celsius, epsilon);
             Temperature eighteenC = Temperature.FromKelvin(zeroC.Kelvin + 18);
             Assert.AreEqual(18, eighteenC.Celsius, epsilon);

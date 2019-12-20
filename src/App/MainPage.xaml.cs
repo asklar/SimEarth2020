@@ -286,7 +286,7 @@ where TEnum : struct, IConvertible, IComparable, IFormattable
             Controller.Scaling = 33f;
             Controller.UseBlitting = true;
             Controller.UseDiffing = true;
-            world.Terraform();
+            new Terraformer(world).Terraform();
             WorldCanvas.Focus(FocusState.Programmatic);
         }
 
