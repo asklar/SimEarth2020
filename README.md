@@ -8,3 +8,5 @@ I'm using this project to learn about:
 * Ecology/Earth sciences/Physics
 
 And also because I really liked the original Sim*-type games from the 90s! :)
+
+![GIF](https://raw.githubusercontent.com/wiki/asklar/SimEarth2020/assets/simearth2020_demo.gif)
