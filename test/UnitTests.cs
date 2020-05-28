@@ -1,21 +1,47 @@
 using Environment;
-using NUnit.Framework;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Diagnostics;
 
-namespace SimEarthTests
+namespace Tests
 {
+    [TestClass]
     public class UnitTests
     {
-        [SetUp]
+        [TestInitialize]
         public void Setup()
         {
         }
 
         const double epsilon = 0.015;
 
-        [Test]
+        [TestMethod]
         public void RandomNormal()
+        {
+            const int retries = 3;
+            bool failed = true;
+            int attempt = 0;
+            while (failed && attempt < retries)
+            {
+                failed = false;
+                try
+                {
+                    RandomNormal1();
+                }
+                catch
+                {
+                    failed = true;
+                    attempt++;
+                    if (attempt == retries)
+                    {
+                        throw;
+                    }
+                }
+            }
+            Assert.IsFalse(failed);
+        }
+
+        private void RandomNormal1()
         {
             double mean = 0, stddev = 0;
             const int M = 10;
@@ -33,7 +59,7 @@ namespace SimEarthTests
 
         private static void GetNormalStatistics(Random random, out double mean, out double stddev)
         {
-            const int N = 2000;
+            const int N = 1000;
             double c = 0;
             double d = 0;
             for (int i = 0; i < N; i++)
@@ -46,7 +72,7 @@ namespace SimEarthTests
             stddev = Math.Sqrt(d / N);
         }
 
-        [Test]
+        [TestMethod]
         public void AnimalStats()
         {
             var animal = new AnimalPack(AnimalKind.Prokaryote, 10);
@@ -58,7 +84,7 @@ namespace SimEarthTests
             Assert.IsFalse(animal.Stats.CanWalk);
         }
 
-        [Test]
+        [TestMethod]
         public void TerrainStats()
         {
             Assert.IsTrue(Enum.GetValues(typeof(TerrainKind)).Length >= 9);
@@ -73,17 +99,17 @@ namespace SimEarthTests
             }
         }
 
-        [Test]
+        [TestMethod]
         public void TestTemperature()
         {
-            Temperature zeroC = Temperature.FromKelvin(273.15);
+            Temperature zeroC = Temperature.FromKelvin(273.15f);
             Assert.AreEqual(0, zeroC.Celsius, epsilon);
             Temperature eighteenC = Temperature.FromKelvin(zeroC.Kelvin + 18);
             Assert.AreEqual(18, eighteenC.Celsius, epsilon);
             Assert.AreEqual(64.4, eighteenC.Fahrenheit, epsilon);
         }
 
-        [Test]
+        [TestMethod]
         public void TestAngle()
         {
             var right = Angle.FromDegrees(90);

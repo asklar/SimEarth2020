@@ -1,92 +1,82 @@
-﻿using NUnit.Framework;
-using SimEarth2020;
-using System;
-using System.Diagnostics;
-using System.Threading;
+﻿using Environment;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Collections.Generic;
+using Windows.Foundation;
 
-namespace SimEarthTests
+namespace Tests
 {
+    [TestClass]
     public class UITests
     {
-        private void AppThreadProc()
-        {
-            mutex = new Mutex(true);
-
-            duration = perf.Profile(() => { app = new App(); app.InitializeComponent(); });
-            app.StartupUri = new Uri($"pack://application:,,,/{typeof(App).Assembly.GetName().Name};component/MainWindow.xaml", System.UriKind.Absolute);
-
-            mutex.ReleaseMutex(); // duration is ready
-            app.Run();
-        }
-
-        PerfUtil perf;
-        App app;
-        Mutex mutex;
-        double duration = 0;
-
-        [OneTimeSetUp]
+        MockController2 appController;
+        MockApplicationUI appui;
+        [TestInitialize]
         public void Setup()
         {
-            perf = new PerfUtil();
-            var thread = new Thread(AppThreadProc);
-            thread.SetApartmentState(ApartmentState.STA);
-            thread.Name = "App Thread";
-            thread.Start();
-            while (mutex == null) Thread.Yield();
-
-            mutex.WaitOne();
-            Assert.IsNotNull(app);
+            appui = new MockApplicationUI();
+            appController = new MockController2(appui);
+            var world = appController.CreateWorld(5);
+            new Terraformer(world).Terraform();
+            appController.CurrentWorld.Tick();
         }
 
-        [OneTimeTearDown]
-        public void Teardown()
+        [TestMethod]
+        public void ViewportDraw0x0()
         {
-            mutex.ReleaseMutex();
-            app.Dispatcher.Invoke(() => app.Shutdown());
+            appController.Draw(null);
+            var cells = appController.DrawnCells;
+            Assert.AreEqual(1, cells.Count);
+
+            var ps = GenerateSquare(0, 0);
+            Assert.AreEqual(1, ps.Length);
+            Assert.IsTrue(Same(ps, cells));
         }
 
-        [Test, Order(1)]
-        public void CreateApp()
+        [TestMethod]
+        public void ViewportDraw40x40()
         {
-            Assert.IsTrue(duration != 0);
-            Assert.IsTrue(duration < 4e8);
+            appController.UpdateViewportSize(40, 40);
+            appController.Draw(null);
+            var cells = appController.DrawnCells;
+            Assert.AreEqual(9, cells.Count);
+            Assert.IsTrue(Same(GenerateSquare(0, 2), cells));
         }
 
-        [Test, Order(2)]
-        public void CreateWorld()
+        [TestMethod]
+        public void ViewportDrawWithScale()
         {
-            MainWindow main = null;
-            double show = double.MaxValue;
-            app.Dispatcher.Invoke(
-                () =>
-                {
-                    main = app.MainWindow as MainWindow;
-                    show = perf.Profile(() => main.Show());
-                });
+            appController.UpdateViewportSize(40, 40);
+            appController.Scaling = 50f;
+            appController.Draw(null);
+            var cells = appController.DrawnCells;
+            Assert.AreEqual(25, cells.Count, $"Expected 36 cells but got {cells.Count}"); // 0 to 4
+            Assert.IsTrue(Same(GenerateSquare(0, 4), cells), "Cell elements aren't as expected");
 
-            Assert.IsTrue(show < 4e8);
-            app.Dispatcher.Invoke(
-                () =>
-                {
-                    duration = perf.Profile(() => main.NewGame(
-                        new Environment.World(main)
-                        {
-                            Radius = 1,
-                            Age = 0,
-                            Name = "Test World",
-                            Width = 100
-                        }));
-                }
-                );
-            Assert.IsTrue(duration < 5e9);
-
-            Stopwatch stopwatch = Stopwatch.StartNew();
-            app.Dispatcher.Invoke(() =>
+            float fps = appui.FPS;
+            const float minFPS = 150f;
+            Assert.IsTrue(fps >= minFPS, $"fps = {fps} should be >{minFPS}"); // we're not doing any actual drawing, we should be fast
+        }
+        private Point[] GenerateSquare(int v1, int v2)
+        {
+            Point[] ps = new Point[(v2 - v1 + 1) * (v2 - v1 + 1)];
+            for (int y = v1; y <= v2; y++)
             {
-                stopwatch.Stop();
-            }, System.Windows.Threading.DispatcherPriority.ApplicationIdle);
+                for (int x = v1; x <= v2; x++)
+                {
+                    ps[(y - v1) * (v2 - v1 + 1) + (x - v1)] = new Point(x, y);
+                }
+            }
+            return ps;
+        }
 
-            Assert.IsTrue(stopwatch.ElapsedMilliseconds < 500);
+        private static bool Same<T>(IList<T> a, IList<T> b)
+        {
+            if (a.Count != b.Count) return false;
+            for (int i = 0; i < a.Count; i++)
+            {
+                if (!a[i].Equals(b[i])) return false;
+            }
+            return true;
         }
     }
 }

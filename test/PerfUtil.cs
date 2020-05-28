@@ -1,8 +1,8 @@
-﻿using NUnit.Framework;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Diagnostics;
 
-namespace SimEarthTests
+namespace Tests
 {
     public class PerfUtil
     {
