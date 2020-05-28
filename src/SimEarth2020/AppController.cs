@@ -119,7 +119,10 @@ namespace SimEarth2020
             get
             {
                 if (CurrentWorld == null) return 100;
-                else return CurrentWorld.Viewport.RenderScale * 100;
+                else
+                {
+                    return CurrentWorld.Viewport.RenderScale * 100;
+                }
             }
             set
             {
@@ -324,6 +327,7 @@ namespace SimEarth2020
             {
                 Stopwatch s = Stopwatch.StartNew();
                 var viewport = CurrentWorld.Viewport as IViewport;
+                if (viewport.Canvas == null) return;
                 viewport.Draw(arg);
                 s.Stop();
                 stats.AddValue(s.ElapsedMilliseconds);

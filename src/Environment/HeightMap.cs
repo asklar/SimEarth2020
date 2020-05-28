@@ -57,7 +57,7 @@ namespace Environment
 
                 for (int y = 0; y < N; y++)
                 {
-                    polar = (y * onebyty * 2 + halfy) * MathF.PI;     // calculate the polar angle (between positive y in unity (northpole) and the line to the point in space), required in radians 0 to pi
+                    polar = (y * onebyty + halfy) * MathF.PI;     // calculate the polar angle (between positive y in unity (northpole) and the line to the point in space), required in radians 0 to pi
                     sinpolar = MathF.Sin(polar + offsetP); // cache these values as they are the same for each column in the next line
                     cospolar = MathF.Cos(polar + offsetP);
                     for (int x = 0; x < N; x++)
